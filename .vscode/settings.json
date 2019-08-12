@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "woody.h": "c"
+        "woody.h": "c",
+        "ranlib.h": "c",
+        "loader.h": "c"
     }
 }
