@@ -20,7 +20,7 @@ char	*ft_strnjoinzfree(char const *s1, char const *s2, int n, int z)
 	if (!s2)
 		return ((char *)s1);
 	len = s1 ? ft_strlen(s1) : 0;
-	n = n == -1 && s2 ? ft_strlen(s2) : n;
+	n = n == -1 && s2 ? (int)ft_strlen(s2) : n;
 	if (!(res = ft_strnew(len + n)))
 		return (0);
 	if (s1)

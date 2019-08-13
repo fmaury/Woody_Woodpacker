@@ -16,16 +16,17 @@ COMPILER		= gcc
 
 CC_FLAGS		= -Wall -Werror -Wextra
 
-INC				= inc
+INC				= ./inc
 
-LIB				= libft/libft.a
-LIB_INC			= libft/includes
+LIB				= ./libft/libft.a
+LIB_INC			= ./libft/includes
 
-SRC_DIR			= src
-OBJ_DIR			= obj
+SRC_DIR			= ./src
+OBJ_DIR			= ./obj
 
 SRC				= main.c			\
 				  load.c			\
+				  insert_pack.c \
 				  err.c
 					
 OBJ				= $(SRC:.c=.o)
@@ -37,7 +38,7 @@ OBJS			= $(addprefix $(OBJ_DIR)/, $(OBJ))
 all : $(NAME)
 
 $(NAME): $(LIB) $(OBJS) $(INC) 
-	$(COMPILER) $(CC_FLAGS) $(OBJS) -o $(NAME) $(LIB)
+	$(COMPILER) $(CC_FLAGS) -I $(LIB_INC) -I $(INC) $(OBJS) -o $(NAME) -L ./libft -lft
 	@echo " / \   / \   / \   / \   / \   / \ "
 	@echo "( \033[0;32mW\033[0m ) ( \033[0;32mO\033[0m ) ( \033[0;32mO\033[0m ) ( \033[0;32mD\033[0m ) ( \033[0;32mY\033[0m ) ( \033[0;32m.\033[0m )"
 	@echo " \_/   \_/   \_/   \_/   \_/   \_/ "

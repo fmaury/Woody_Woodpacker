@@ -24,6 +24,7 @@ int main(int ac, char **av)
 	ft_bzero(&obj, sizeof(t_wdy));
 	if (load_file(av[1], &obj) < 0)
 		return (1);
+	insert_pack(&obj);
 	release_file(&obj);
 	return (0);
 }
