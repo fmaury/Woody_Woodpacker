@@ -1,22 +1,44 @@
 #include <woody.h>
 
-int check_null_space(t_wdy *obj)
+void find_offset(t_wdy *obj)
 {
-    size_t     i;
-    size_t   nbyte;
-    char       *tmp_ptr;
+    Elf64_Ehdr *hdr;
+    Elf64_Shdr *shdr;
+    int i = 0;
+    Elf64_Shdr *sec_name;
 
-    i = 0;
-    nbyte = i;
-    tmp_ptr = (char *)obj->ptr;
-    while (i < obj->size)
+    hdr = (Elf64_Ehdr*)obj->ptr;
+    obj->entry = hdr->e_entry;
+    printf("entry:%ld\n",hdr->e_shoff);
+    shdr = obj->ptr + hdr->e_shoff;
+    sec_name = shdr + hdr->e_shstrndx;
+    while (i < hdr->e_shnum)
     {
-        if (tmp_ptr[i])
-            nbyte = i + 1;
-        else if (i - nbyte >= SHELLCODE_LEN)
-            return (nbyte);
+    printf("name:%s\n", (char*)(obj->ptr + sec_name->sh_offset + shdr->sh_name));
+        shdr++;
         i++;
     }
+    
+}
+
+int check_null_space(t_wdy *obj)
+{
+    // size_t     i;
+    // size_t   nbyte;
+    // char       *tmp_ptr;
+
+    // i = 0;
+    find_offset(obj);
+    // nbyte = i;
+    // tmp_ptr = (char *)obj->ptr;
+    // while (i < obj->size)
+    // {
+    //     if (tmp_ptr[i])
+    //         nbyte = i + 1;
+    //     else if (i - nbyte >= SHELLCODE_LEN)
+    //         return (nbyte);
+    //     i++;
+    // }
     return (-1);
 }
 
