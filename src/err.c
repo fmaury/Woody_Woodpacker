@@ -6,7 +6,7 @@
 /*   By: cbarbier <cbarbier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/08/09 14:12:01 by cbarbier          #+#    #+#             */
-/*   Updated: 2019/08/12 13:58:00 by cbarbier         ###   ########.fr       */
+/*   Updated: 2019/08/14 11:05:29 by cbarbier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,11 @@
 
 static t_wdy_err		g_wdy_err[] = {
 	{OPEN, "Open failed"},
+	{CLOSE, "Close failed"},
 	{DIRECTORY, "Is a directory"},
 	{MMAP, "Mmap failed"},
 	{MUNMAP, "Munmap failed"},
+	{MALLOC, "Malloc failed"},
 	{FSTAT, "Fstat failed"},
 	{INVALID, "The file was not recognized as a valid binary"},
 	{DEFAULT_ERR, "Something wrong happened"},

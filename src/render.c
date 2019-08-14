@@ -1,30 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   render.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cbarbier <cbarbier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/08/09 13:49:42 by cbarbier          #+#    #+#             */
-/*   Updated: 2019/08/13 12:55:18 by cbarbier         ###   ########.fr       */
+/*   Created: 2019/08/13 12:48:51 by cbarbier          #+#    #+#             */
+/*   Updated: 2019/08/13 13:02:27 by cbarbier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <woody.h>
 
-int main(int ac, char **av)
+int						render(t_wdy *obj)
 {
-	t_wdy			obj;
-
-	if (ac != 2)
-	{
-		dprintf(STDERR, "Usage: %s BINARY\n", av[0]);
-		return (1);
-	}
-	ft_bzero(&obj, sizeof(t_wdy));
-	if (load_file(av[1], &obj) < 0)
-		return (1);
-	dispatcher(&obj);
-	release_file(&obj);
-	return (0);
+    printf("key_value: %zx\n", obj->key);
+    return (0);
 }

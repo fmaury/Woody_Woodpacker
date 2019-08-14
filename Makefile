@@ -6,7 +6,7 @@
 #    By: cbarbier <cbarbier@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/11/04 11:00:31 by fmaury            #+#    #+#              #
-#    Updated: 2019/08/12 15:35:11 by cbarbier         ###   ########.fr        #
+#    Updated: 2019/08/13 13:01:50 by cbarbier         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,6 +26,12 @@ OBJ_DIR			= obj
 
 SRC				= main.c			\
 				  load.c			\
+				  utils.c			\
+				  check.c			\
+				  dispatcher.c		\
+				  handle_macho32.c	\
+				  handle_macho64.c	\
+				  render.c			\
 				  err.c
 					
 OBJ				= $(SRC:.c=.o)
