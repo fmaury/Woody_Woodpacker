@@ -73,7 +73,7 @@ void insert_shellcode(t_wdy *obj, int offset)
 {
     uint32_t op;
     ft_memcpy(obj->ptr + offset, ELF64_SHELLCODE, SHELLCODE_LEN);
-    op = (obj->entry + 1) - (offset + SHELLCODE_LEN);
+    op = (obj->entry) - (offset + SHELLCODE_LEN - 1);
     printf("len octet: %d %lx %x\n",op, obj->entry, offset + SHELLCODE_LEN);
     ft_memcpy(obj->ptr + offset + SHELLCODE_LEN, (void *)&op, 4);
     *(uint64_t *)obj->entry_addr = offset;

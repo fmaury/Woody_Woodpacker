@@ -26,7 +26,8 @@ OBJ_DIR			= ./obj
 
 SRC				= main.c			\
 				  load.c			\
-				  insert_pack.c \
+				  insert_pack.c 	\
+				  chk_ptr.c 		\
 				  err.c
 					
 OBJ				= $(SRC:.c=.o)

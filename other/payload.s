@@ -15,9 +15,11 @@ print:
     mov dl, 7
     mov al, 1
     syscall
-    mov rax, 60
-    syscall
+    jmp lol
 
 msg:
     call print
-    db 'coucou',10
+    db 'coucou',10,0
+lol:
+    jmp fart
+fart:
