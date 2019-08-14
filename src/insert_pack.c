@@ -12,13 +12,13 @@ int find_offset(t_wdy *obj)
     hdr = (Elf64_Ehdr*)obj->ptr;
     obj->entry = hdr->e_entry;
     obj->entry_addr = &hdr->e_entry;
-    if (!chk_ptr(wdy, obj->ptr, hdr->e_shoff))
+    if (!chk_ptr(obj, obj->ptr, hdr->e_shoff))
     {
         ft_putstr("Pointer error\n");
         return (0);
     }
     shdr = obj->ptr + hdr->e_shoff;
-    if (!chk_ptr(wdy, shdr, hdr->e_shstrndx))
+    if (!chk_ptr(obj, shdr, hdr->e_shstrndx))
     {
         ft_putstr("Pointer error\n");
         return (0);
@@ -26,8 +26,8 @@ int find_offset(t_wdy *obj)
     secname_section = shdr + hdr->e_shstrndx;
     while (i < hdr->e_shnum)
     {
-        if (!chk_ptr(wdy, obj->ptr, secname_section->sh_offset + shdr->sh_name) ||
-        !chk_ptr(wdy, shdr, sizeof(*shdr)))
+        if (!chk_ptr(obj, obj->ptr, secname_section->sh_offset + shdr->sh_name) ||
+        !chk_ptr(obj, shdr, sizeof(*shdr)))
         {
             ft_putstr("Pointer error\n");
             return (0);
@@ -71,8 +71,12 @@ int check_null_space(t_wdy *obj)
 
 void insert_shellcode(t_wdy *obj, int offset)
 {
-    *(uint64_t *)obj->entry_addr = offset;
+    uint32_t op;
     ft_memcpy(obj->ptr + offset, ELF64_SHELLCODE, SHELLCODE_LEN);
+    op = (obj->entry + 1) - (offset + SHELLCODE_LEN);
+    printf("len octet: %d %lx %x\n",op, obj->entry, offset + SHELLCODE_LEN);
+    ft_memcpy(obj->ptr + offset + SHELLCODE_LEN, (void *)&op, 4);
+    *(uint64_t *)obj->entry_addr = offset;
 }
 
 int insert_pack(t_wdy *obj)
@@ -83,9 +87,9 @@ int insert_pack(t_wdy *obj)
     if ((offset = check_null_space(obj)) == -1)
         return (0);
     insert_shellcode(obj, offset);
-    if (!(fp = open("packed", O_CREAT | O_WRONLY, 0777) == -1 ))
+    if ((fp = open("packed", O_CREAT | O_WRONLY, 0777)) == -1)
     {
-        printf("Can't open %s\n", packed);
+        printf("Can't open %s\n", "packed");
         return (0);
     }
     write(fp, obj->ptr, obj->size);

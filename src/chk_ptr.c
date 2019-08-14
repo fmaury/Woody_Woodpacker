@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "nm.h"
+#include <woody.h>
 
 int				string_oef(char *str, t_wdy *file)
 {
@@ -47,7 +47,7 @@ static int		aft_file(void *end_file, void *end_ptr)
 
 int				chk_ptr(t_wdy *file, void *begin, size_t size)
 {
-	if (!bfr_file(file->begin, begin))
+	if (!bfr_file(file->ptr, begin))
 		return (0);
 	if (!aft_file(file->ptr + file->size, begin + size))
 		return (0);
