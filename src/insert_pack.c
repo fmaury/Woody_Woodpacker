@@ -33,9 +33,12 @@ int find_offset(t_wdy *obj)
             return (0);
         }
         secname = (char*)(obj->ptr + secname_section->sh_offset + shdr->sh_name);
-        printf("name:%s\n", secname);
+        // printf("name:%s\n", secname);
         if (!strcmp(secname, ".plt"))
+        {
+            obj->encrypt_size = shdr->sh_size;
             return ((int)shdr->sh_offset);
+        }
         shdr++;
         i++;
     }
@@ -74,9 +77,21 @@ void insert_shellcode(t_wdy *obj, int offset)
     uint32_t op;
     ft_memcpy(obj->ptr + offset, ELF64_SHELLCODE, SHELLCODE_LEN);
     op = (obj->entry) - (offset + SHELLCODE_LEN - 1);
-    printf("len octet: %d %lx %x\n",op, obj->entry, offset + SHELLCODE_LEN);
+    // printf("len octet: %d %lx %x\n",op, obj->entry, offset + SHELLCODE_LEN);
     ft_memcpy(obj->ptr + offset + SHELLCODE_LEN, (void *)&op, 4);
     *(uint64_t *)obj->entry_addr = offset;
+}
+
+int encrypt_text_sec(t_wdy *obj)
+{
+    int i = 0;
+    write(1, obj->ptr + (obj->entry + SHELLCODE_LEN), obj->encrypt_size - SHELLCODE_LEN);
+    while (i < obj->encrypt_size)
+    {
+        obj->ptr[obj->entry + i] ^= obj->ptr[obj->entry + i];
+        i++;
+    }
+    return (1); 
 }
 
 int insert_pack(t_wdy *obj)
@@ -87,6 +102,7 @@ int insert_pack(t_wdy *obj)
     if ((offset = check_null_space(obj)) == -1)
         return (0);
     insert_shellcode(obj, offset);
+    encrypt_text_sec(obj);
     if ((fp = open("packed", O_CREAT | O_WRONLY, 0777)) == -1)
     {
         printf("Can't open %s\n", "packed");
