@@ -3,7 +3,7 @@
 int find_offset(t_wdy *obj)
 {
     int i = 0;
-    
+    int sec_found = 0;
     Elf64_Ehdr *hdr;
     Elf64_Shdr *shdr;
     Elf64_Shdr *secname_section;
@@ -34,14 +34,21 @@ int find_offset(t_wdy *obj)
         }
         secname = (char*)(obj->ptr + secname_section->sh_offset + shdr->sh_name);
         // printf("name:%s\n", secname);
-        if (!strcmp(secname, ".plt"))
+        if (!strcmp(secname, ".text"))
         {
-            obj->encrypt_size = shdr->sh_size;
-            return ((int)shdr->sh_offset);
+            shdr->sh_flags |=  SHF_WRITE ;
+            obj->text_addr = shdr->sh_addr;
+            obj->text_offset = (int)shdr->sh_offset;
+            obj->text_size = shdr->sh_size;
         }
+        if (!strcmp(secname, ".plt"))
+            sec_found = (int)shdr->sh_offset;
         shdr++;
         i++;
     }
+    printf ("text: %d plt: %d\n", sec_found, obj->text_offset);
+    if (sec_found && obj->text_size)
+        return sec_found;
     return 0;
     
 }
@@ -74,21 +81,28 @@ int check_null_space(t_wdy *obj)
 
 void insert_shellcode(t_wdy *obj, int offset)
 {
-    uint32_t op;
+    uint32_t jump_offset;
+
     ft_memcpy(obj->ptr + offset, ELF64_SHELLCODE, SHELLCODE_LEN);
-    op = (obj->entry) - (offset + SHELLCODE_LEN - 1);
-    // printf("len octet: %d %lx %x\n",op, obj->entry, offset + SHELLCODE_LEN);
-    ft_memcpy(obj->ptr + offset + SHELLCODE_LEN, (void *)&op, 4);
+    jump_offset = (obj->entry + 1) - (offset + SHELLCODE_LEN);
+    // printf("len octet: %d %lx %x\n",jump_offset, obj->entry, offset + SHELLCODE_LEN);
+    ft_memcpy(obj->ptr + offset + SHELLCODE_LEN, (void *)&jump_offset, 4);
+    // ft_memcpy(obj->ptr + offset + 0x1c, (void *)&obj->text_addr, 4);
+    printf ("off: %x\n",*(uint32_t*)(obj->ptr + offset + SHELLCODE_LEN));
+    printf ("%ld entry_point: %ld  jump_offset: %d\n", obj->size,obj->entry, offset + SHELLCODE_LEN - 1 + jump_offset );
     *(uint64_t *)obj->entry_addr = offset;
 }
 
 int encrypt_text_sec(t_wdy *obj)
 {
     int i = 0;
-    write(1, obj->ptr + (obj->entry + SHELLCODE_LEN), obj->encrypt_size - SHELLCODE_LEN);
-    while (i < obj->encrypt_size)
+    char *encr = (char*)obj->ptr;
+    printf("text_o:%d\n",obj->text_size);
+    // printf("text_o:%d  entr_o:%ld\n",obj->text_offset, obj->entry);
+    // write(1, obj->ptr + (obj->entry + SHELLCODE_LEN), obj->text_size - SHELLCODE_LEN);
+    while (i < obj->text_size)
     {
-        obj->ptr[obj->entry + i] ^= obj->ptr[obj->entry + i];
+        encr[obj->entry + i] ^= 0;
         i++;
     }
     return (1); 
