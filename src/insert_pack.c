@@ -83,13 +83,16 @@ void insert_shellcode(t_wdy *obj, int offset)
 {
     uint32_t jump_offset;
 
+    // Copie le shellcode dans la section qui va bien
     ft_memcpy(obj->ptr + offset, ELF64_SHELLCODE, SHELLCODE_LEN);
-    jump_offset = (obj->entry + 1) - (offset + SHELLCODE_LEN);
-    // printf("len octet: %d %lx %x\n",jump_offset, obj->entry, offset + SHELLCODE_LEN);
+    // Calcule l'offset du jump. Debut de la section texte, moins l'offset de la fin de notre shellcode (-1 pour l'octet du jump)
+    jump_offset = (obj->entry) - (offset + SHELLCODE_LEN - 1);
+    // On ajoute a l'octet du jump la valeur de jump_offset pour jumper au debut de la section text
     ft_memcpy(obj->ptr + offset + SHELLCODE_LEN, (void *)&jump_offset, 4);
-    // ft_memcpy(obj->ptr + offset + 0x1c, (void *)&obj->text_addr, 4);
-    printf ("off: %x\n",*(uint32_t*)(obj->ptr + offset + SHELLCODE_LEN));
-    printf ("%ld entry_point: %ld  jump_offset: %d\n", obj->size,obj->entry, offset + SHELLCODE_LEN - 1 + jump_offset );
+    // Ensuite on change la valeur du mov dans notre shellcode par l'offset pour aller au debut de la sec text
+    // Debut de la section text + la valeur deja presente dans le mov ($$) moins l'offset du debut de notre shellcode
+    jump_offset = obj->entry + *((uint32_t*)(obj->ptr + offset + 0x1b)) - offset;
+    ft_memcpy(obj->ptr + offset + 0x1b, (void *)&jump_offset, 4);
     *(uint64_t *)obj->entry_addr = offset;
 }
 
@@ -97,12 +100,9 @@ int encrypt_text_sec(t_wdy *obj)
 {
     int i = 0;
     char *encr = (char*)obj->ptr;
-    printf("text_o:%d\n",obj->text_size);
-    // printf("text_o:%d  entr_o:%ld\n",obj->text_offset, obj->entry);
-    // write(1, obj->ptr + (obj->entry + SHELLCODE_LEN), obj->text_size - SHELLCODE_LEN);
     while (i < obj->text_size)
     {
-        encr[obj->entry + i] ^= 0;
+        encr[obj->entry + i] ^= 42;
         i++;
     }
     return (1); 
@@ -116,7 +116,7 @@ int insert_pack(t_wdy *obj)
     if ((offset = check_null_space(obj)) == -1)
         return (0);
     insert_shellcode(obj, offset);
-    encrypt_text_sec(obj);
+    // encrypt_text_sec(obj);
     if ((fp = open("packed", O_CREAT | O_WRONLY, 0777)) == -1)
     {
         printf("Can't open %s\n", "packed");
