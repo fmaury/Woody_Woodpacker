@@ -15,7 +15,7 @@ print:
     mov dl, 14
     mov al, 1
     syscall
-    mov rdi, 0x555555555135
+;    lea rdi, [$ + -1000]
 ;    mov rsi, 369
 ;loop:
 ;    mov rax, [rdi]
@@ -42,5 +42,4 @@ msug:
     db '....WOODY....',10,0
 
 lol:
-    jmp fart
-fart:
+    jmp 0

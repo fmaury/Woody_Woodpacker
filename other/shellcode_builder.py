@@ -9,5 +9,5 @@ for line in lines :
     if len(line) == 0 :
         continue
     shellcode += ' '.join(line.split()).replace(' ','\\x') + "\\x"
-shellcode = shellcode[:-7]
-print("len: " + str(len(shellcode) / 4) + "\n\\x"+shellcode + "9")
+shellcode = "\\x" + shellcode[:-7] + "9"
+print("len: " + str(len(shellcode) / 4) + "\n"+shellcode)
