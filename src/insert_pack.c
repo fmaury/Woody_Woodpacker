@@ -86,6 +86,8 @@ void insert_shellcode(t_wdy *obj, int offset)
     uint32_t jump_offset;
 
     printf("entr: %lu paagesize:%d\n",obj->entry, getpagesize());
+    write(1,obj->ptr + obj->entry,14);
+    puts("");
     // Copie le shellcode dans la section qui va bien
     ft_memcpy(obj->ptr + offset, ELF64_SHELLCODE, SHELLCODE_LEN);
     // Calcule l'offset du jump. Debut de la section texte, moins l'offset de la fin de notre shellcode (-1 pour l'octet du jump)
@@ -97,9 +99,10 @@ void insert_shellcode(t_wdy *obj, int offset)
     printf("%d %d\n",*((uint32_t*)(obj->ptr + offset + 0x1b)),*((uint32_t*)(obj->ptr + offset + 59)));
     jump_offset = obj->entry - offset + *((uint32_t*)(obj->ptr + offset + 0x1b));
     ft_memcpy(obj->ptr + offset + 0x1b, (void *)&jump_offset, 4);
-    ft_memcpy(obj->ptr + offset + 34, (void *)&obj->text_size, 4);
-    jump_offset = obj->entry - offset + *((uint32_t*)(obj->ptr + offset + 59));
-    ft_memcpy(obj->ptr + offset + 59, (void *)&jump_offset, 4);
+    // ft_memcpy(obj->ptr + offset + 34, (void *)&obj->text_size, 4);
+    printf("siz:%d\n",0xffffffc3);
+    jump_offset = obj->entry - offset + *((uint32_t*)(obj->ptr + offset + 57));
+    ft_memcpy(obj->ptr + offset + 57, (void *)&jump_offset, 4);
     *(uint64_t *)obj->entry_addr = offset;
 }
 
@@ -123,7 +126,7 @@ int insert_pack(t_wdy *obj)
     if ((offset = check_null_space(obj)) == -1)
         return (0);
     insert_shellcode(obj, offset);
-    // encrypt_text_sec(obj);
+    encrypt_text_sec(obj);
     if ((fp = open("packed", O_CREAT | O_WRONLY, 0777)) == -1)
     {
         printf("Can't open %s\n", "packed");
