@@ -14,7 +14,7 @@ NAME			= woody_woodpacker
 
 COMPILER		= gcc
 
-CC_FLAGS		= -Wall -Werror -Wextra
+CC_FLAGS		= -Wall -Werror -Wextra -g3
 
 INC				= ./inc
 

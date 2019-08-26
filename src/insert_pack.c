@@ -1,5 +1,21 @@
 #include <woody.h>
 
+int seg_writable(t_wdy *obj, Elf64_Ehdr *hdr)
+{
+    Elf64_Phdr *phdr;
+    int i = 0;
+
+    phdr = obj->ptr + hdr->e_phoff;
+    while (i < hdr->e_phnum)
+    {
+        if (phdr->p_type == PT_LOAD)
+            phdr->p_flags = PF_R | PF_W | PF_X;
+        phdr++;
+        i++;
+    }
+    return (1);
+}
+
 int find_offset(t_wdy *obj)
 {
     int i = 0;
@@ -10,6 +26,7 @@ int find_offset(t_wdy *obj)
     char *secname;
 
     hdr = (Elf64_Ehdr*)obj->ptr;
+    seg_writable(obj, hdr);
     obj->entry = hdr->e_entry;
     obj->entry_addr = &hdr->e_entry;
     if (!chk_ptr(obj, obj->ptr, hdr->e_shoff))
@@ -33,18 +50,14 @@ int find_offset(t_wdy *obj)
             return (0);
         }
         secname = (char*)(obj->ptr + secname_section->sh_offset + shdr->sh_name);
-        // printf("name:%s\n", secname);
         if (!strcmp(secname, ".text"))
         {
             shdr->sh_flags = SHF_WRITE | SHF_ALLOC | SHF_EXECINSTR ;
             obj->text_addr = shdr->sh_addr;
             obj->text_offset = (int)shdr->sh_offset;
             obj->text_size = shdr->sh_size;
-
-            mprotect(obj->ptr + obj->text_offset,shdr->sh_size,PROT_READ | PROT_WRITE | PROT_EXEC);
-            printf ("Oui: %p %ld %d\n",obj->ptr + obj->text_offset,shdr->sh_size,0xffffffb9);
         }
-        if (!strcmp(secname, ".plt"))
+        if (!strcmp(secname, ".interp"))
             sec_found = (int)shdr->sh_offset;
         shdr++;
         i++;
@@ -85,9 +98,6 @@ void insert_shellcode(t_wdy *obj, int offset)
 {
     uint32_t jump_offset;
 
-    printf("entr: %lu paagesize:%d\n",obj->entry, getpagesize());
-    write(1,obj->ptr + obj->entry,14);
-    puts("");
     // Copie le shellcode dans la section qui va bien
     ft_memcpy(obj->ptr + offset, ELF64_SHELLCODE, SHELLCODE_LEN);
     // Calcule l'offset du jump. Debut de la section texte, moins l'offset de la fin de notre shellcode (-1 pour l'octet du jump)
@@ -96,13 +106,10 @@ void insert_shellcode(t_wdy *obj, int offset)
     ft_memcpy(obj->ptr + offset + SHELLCODE_LEN, (void *)&jump_offset, 4);
     // Ensuite on change la valeur du mov dans notre shellcode par l'offset pour aller au debut de la sec text
     // Debut de la section text + la valeur deja presente dans le mov ($$) moins l'offset du debut de notre shellcode
-    printf("%d %d\n",*((uint32_t*)(obj->ptr + offset + 0x1b)),*((uint32_t*)(obj->ptr + offset + 59)));
-    jump_offset = obj->entry - offset + *((uint32_t*)(obj->ptr + offset + 0x1b));
-    ft_memcpy(obj->ptr + offset + 0x1b, (void *)&jump_offset, 4);
-    // ft_memcpy(obj->ptr + offset + 34, (void *)&obj->text_size, 4);
-    printf("siz:%d\n",0xffffffc3);
-    jump_offset = obj->entry - offset + *((uint32_t*)(obj->ptr + offset + 57));
-    ft_memcpy(obj->ptr + offset + 57, (void *)&jump_offset, 4);
+    jump_offset = obj->entry - offset + *((uint32_t*)(obj->ptr + offset + 27));
+    ft_memcpy(obj->ptr + offset + 27, (void *)&jump_offset, 4);
+    // La taille de notre section text
+    ft_memcpy(obj->ptr + offset + 32, (void *)&obj->text_size, 4);
     *(uint64_t *)obj->entry_addr = offset;
 }
 
@@ -112,7 +119,7 @@ int encrypt_text_sec(t_wdy *obj)
     char *encr = (char*)obj->ptr;
     while (i < obj->text_size)
     {
-        encr[obj->entry + i] ^= 0;
+        encr[obj->entry + i] ^= 42;
         i++;
     }
     return (1); 
