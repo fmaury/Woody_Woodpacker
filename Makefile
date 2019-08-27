@@ -6,7 +6,7 @@
 #    By: cbarbier <cbarbier@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/11/04 11:00:31 by fmaury            #+#    #+#              #
-#    Updated: 2019/08/13 13:01:50 by cbarbier         ###   ########.fr        #
+#    Updated: 2019/08/27 17:01:51 by cbarbier         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,22 +16,24 @@ COMPILER		= gcc
 
 CC_FLAGS		= -Wall -Werror -Wextra
 
-INC				= inc
+INC				= ./inc
 
-LIB				= libft/libft.a
-LIB_INC			= libft/includes
+LIB				= ./libft/libft.a
+LIB_INC			= ./libft/includes
 
-SRC_DIR			= src
-OBJ_DIR			= obj
+SRC_DIR			= ./src
+OBJ_DIR			= ./obj
 
 SRC				= main.c			\
 				  load.c			\
 				  utils.c			\
 				  check.c			\
 				  dispatcher.c		\
-				  handle_macho32.c	\
-				  handle_macho64.c	\
+				  handle_elf64.c	\
+				  handle_elf32.c	\
 				  render.c			\
+				  insert_pack.c 	\
+				  chk_ptr.c 		\
 				  err.c
 					
 OBJ				= $(SRC:.c=.o)
@@ -43,7 +45,7 @@ OBJS			= $(addprefix $(OBJ_DIR)/, $(OBJ))
 all : $(NAME)
 
 $(NAME): $(LIB) $(OBJS) $(INC) 
-	$(COMPILER) $(CC_FLAGS) $(OBJS) -o $(NAME) $(LIB)
+	$(COMPILER) $(CC_FLAGS) -I $(LIB_INC) -I $(INC) $(OBJS) -o $(NAME) -L ./libft -lft
 	@echo " / \   / \   / \   / \   / \   / \ "
 	@echo "( \033[0;32mW\033[0m ) ( \033[0;32mO\033[0m ) ( \033[0;32mO\033[0m ) ( \033[0;32mD\033[0m ) ( \033[0;32mY\033[0m ) ( \033[0;32m.\033[0m )"
 	@echo " \_/   \_/   \_/   \_/   \_/   \_/ "

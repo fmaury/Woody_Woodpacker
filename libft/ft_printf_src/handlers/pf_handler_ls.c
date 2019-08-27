@@ -58,7 +58,6 @@ static void		set_dw_ls(t_arg *arg)
 static char		*pf_tool_ls(t_arg *arg, wchar_t wc, int *len)
 {
 	char		c;
-	int			dw;
 
 	if ((wc < 0 || wc > 0x10FFFF) && (arg->error = 1))
 		return (ft_strnew(0));
@@ -68,7 +67,6 @@ static char		*pf_tool_ls(t_arg *arg, wchar_t wc, int *len)
 		c = (char)wc;
 		return (ft_strncpy(ft_strdup(" "), &c, 1));
 	}
-	dw = 0;
 	if (wc <= 0x07FF)
 		*len = 2;
 	else if (wc <= 0xFFFF)

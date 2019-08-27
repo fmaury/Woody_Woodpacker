@@ -76,7 +76,6 @@ int					get_next_line(const int fd, char **line)
 {
 	static t_list	*lst;
 	t_fbuffer		*fbuffer;
-	char			*tmp;
 	int				count;
 
 	if (fd == -42 && ft_lstdel(&lst, free_fbuffer))
@@ -87,7 +86,6 @@ int					get_next_line(const int fd, char **line)
 	if ((count = read_line(fbuffer)) == -1)
 		return (-1);
 	*line = update_line(fbuffer->data);
-	tmp = fbuffer->data;
 	ft_strshift(&(fbuffer->data), '\n');
 	if (!**line && !count)
 		return (0);
