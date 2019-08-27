@@ -1,33 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   handle_macho32.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cbarbier <cbarbier@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/08/09 13:49:42 by cbarbier          #+#    #+#             */
-/*   Updated: 2019/08/27 17:03:45 by cbarbier         ###   ########.fr       */
+/*   Created: 2019/08/13 11:49:46 by cbarbier          #+#    #+#             */
+/*   Updated: 2019/08/13 13:00:39 by cbarbier         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <woody.h>
 
-
-
-
-int main(int ac, char **av)
+int				handle_elf32(t_wdy *obj)
 {
-	t_wdy			obj;
-
-	ft_bzero(&obj, sizeof(t_wdy));
-	if (parse_arg(&obj, ac, av))
-	{
-		dprintf(STDERR, "Usage: %s BINARY [-c 1|2|3]\n\t-1 : XOR42\n\t-2 : ROT13\n\t-3 : RC4\n", av[0]);
-		return (1);
-	}
-	if (load_file(av[1], &obj) < 0)
-		return (1);
-	dispatcher(&obj);
-	release_file(&obj);
+	(void)obj;
+	printf("ELF32 in progress..\n");
+	//return (er(INVALID, obj->filename));
 	return (0);
 }

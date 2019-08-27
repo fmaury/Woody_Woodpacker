@@ -12,24 +12,22 @@
 
 #include <woody.h>
 
-static t_woody_handler	g_nm_hdlrs[] = {
-	{MACHO64, 1, {MH_MAGIC_64, 0}, handle_macho64, false},
-	{MACHO64, 1, {MH_CIGAM_64, 0}, handle_macho64, true},
-	{MACHO32, 1, {MH_MAGIC, 0}, handle_macho32, false},
-	{MACHO32, 1, {MH_CIGAM, 0}, handle_macho32, true},
-	{NONE, 0, {0, 0}, 0, false}
+static t_woody_handler	g_woody_hdlrs[] = {
+	{ELF32, 5, {0x7f, 0x45, 0x4c, 0x46, 0x01}, &handle_elf32},
+	{ELF64, 5, {0x7f, 0x45, 0x4c, 0x46, 0x02}, &handle_elf64},
+	{NONE, 0, {0, 0, 0, 0, 0}, 0}
 };
 
-static int				magic_matched(t_wdy *obj, size_t ih, uint32_t *ptr)
+static int				magic_matched(t_wdy *obj, size_t ih, unsigned char *ptr)
 {
 	size_t			i;
 
 	i = 0;
-	if (ck(obj, ptr, g_nm_hdlrs[ih].nbytes * 4) < 0)
+	if (ck(obj, ptr, g_woody_hdlrs[ih].nbytes * 5) < 0)
 		return (-1);
-	while (i < g_nm_hdlrs[ih].nbytes)
+	while (i < g_woody_hdlrs[ih].nbytes)
 	{
-		if (ptr[i] != g_nm_hdlrs[ih].mag[i])
+		if (ptr[i] != g_woody_hdlrs[ih].mag[i])
 			return (0);
 		i++;
 	}
@@ -39,16 +37,16 @@ static int				magic_matched(t_wdy *obj, size_t ih, uint32_t *ptr)
 int						dispatcher(t_wdy *obj)
 {
 	size_t			i;
-	uint32_t		*ptr32;
+	unsigned char	*ptr;
 	int				ret;
 
 	i = 0;
 	ret = 0;
-	ptr32 = (u_int32_t *)(obj->ptr);
-	while (g_nm_hdlrs[i].type != NONE && !magic_matched(obj, i, ptr32))
+	ptr = (unsigned char *)(obj->ptr);
+	while (g_woody_hdlrs[i].type != NONE && !magic_matched(obj, i, ptr))
 		i++;
-	if (g_nm_hdlrs[i].type == NONE)
+	if (g_woody_hdlrs[i].type == NONE)
 		return (er(INVALID, obj->filename));
-	ret = g_nm_hdlrs[i].f(obj, g_nm_hdlrs[i].swap);
+	ret = g_woody_hdlrs[i].f(obj);
 	return (!ret ? render(obj) : ret);
 }

@@ -12,73 +12,33 @@
 
 #include <woody.h>
 
-uint16_t			read16(uint16_t *ptr, bool swap)
+t_wdy_payload	g_payloads[4] = {
+    {XOR42, "1", "XOR42", XOR42_DATA, XOR42_DATA_LEN, xor42_encrypt, xor42_insert},
+    {ROT13, "2", "ROT13", ROT13_DATA, ROT13_DATA_LEN, rot13_encrypt, rot13_insert},
+    {RC4, "3", "RC4", RC4_DATA, RC4_DATA_LEN, rc4_encrypt, rc4_insert},
+    {END_CYPHER, 0, 0, 0, 0, 0, 0}
+};
+
+
+int		parse_arg(t_wdy *obj, int ac, char **av)
 {
-	uint16_t				x;
+    int         i = 0;
 
-	if (!swap)
-		return (*ptr);
-	x = *ptr;
-	*ptr = ((x >> 8) | (x << 8));
-	return (*ptr);
-}
-
-uint32_t			read32(uint32_t *ptr, bool swap)
-{
-	uint32_t				x;
-
-	if (!swap)
-		return (*ptr);
-	x = *ptr;
-	*ptr = (((x) >> 24) | (((x) & 0x00FF0000) >> 8)
-	| (((x) & 0x0000FF00) << 8) | ((x) << 24));
-	return (*ptr);
-}
-
-uint64_t			read64(uint64_t *ptr, bool swap)
-{
-	uint64_t				x;
-
-	if (!swap)
-		return (*ptr);
-	x = *ptr;
-	*ptr = (((x) >> 56)
-		| (((x) & (0xFFLL << 48)) >> 40)
-		| (((x) & (0xFFLL << 40)) >> 24)
-		| (((x) & (0xFFLL << 32)) >> 8)
-		| (((x) & (0xFFLL >> 32)) << 8)
-		| (((x) & (0xFFLL >> 40)) << 24)
-		| (((x) & (0xFFLL >> 48)) << 40)
-		| ((x) << 56));
-	return (*ptr);
-}
-
-uint64_t			*write64(uint64_t *ptr, uint64_t x, bool swap)
-{
-	if (!swap)
-	{
-		*ptr = x;
-		return (ptr);
-	}
-	*ptr = (((x) >> 56)
-		| (((x) & (0xFFLL << 48)) >> 40)
-		| (((x) & (0xFFLL << 40)) >> 24)
-		| (((x) & (0xFFLL << 32)) >> 8)
-		| (((x) & (0xFFLL >> 32)) << 8)
-		| (((x) & (0xFFLL >> 40)) << 24)
-		| (((x) & (0xFFLL >> 48)) << 40)
-		| ((x) << 56));
-	return (ptr);
-}
-
-uint32_t			*write32(uint32_t *ptr, uint32_t x, bool swap)
-{
-	if (!swap)
-	{
-		*ptr = x;
-		return (ptr);
-	}
-	*ptr = (((x) >> 24) | (((x) & 0x00FF0000) >> 8)
-	| (((x) & 0x0000FF00) << 8) | ((x) << 24));
-	return (ptr);
+	if (ac < 2 || ac > 4)
+        return (-1);
+    if (ac == 2)
+    {
+        obj->payloadLen = g_payloads[0].len;
+		obj->payloadIndex = 0;
+        return (0);
+    }
+    if (ft_strcmp(av[2], "-c"))
+        return (-1);
+    while (g_payloads[i].type != END_CYPHER && ft_strcmp(g_payloads[i].name1, av[3]) && ft_strcmp(g_payloads[i].name2, av[3]))
+        i++;
+    if (g_payloads[i].type == END_CYPHER)
+        return (-1);
+    obj->payloadLen = g_payloads[i].len;
+	obj->payloadIndex = i;
+	return (0);
 }

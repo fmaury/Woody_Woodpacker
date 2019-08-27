@@ -27,15 +27,19 @@
 # define DEBUG		1
 # define BIN_NAME	"woody"
 
-# define LOG(x) if (DEBUG){dprintf(STDERR, "%s\n", x);}
+#define XOR42_DATA "\xeb\x4b\x48\x31\xff\x48\x31\xf6\x48\x31\xd2\x48\x31\xc0\x40\xb7\x01\x5e\xb2\x0e\xb0\x01\x0f\x05\x48\x8d\x1d\xe1\xff\xff\xff\xb9\x41\x41\x41\x41\xbf\x01\x00\x00\x00\x48\x89\xde\xba\x0e\x00\x00\x00\xb8\x01\x00\x00\x00\x53\x51\x0f\x05\x59\x5b\x80\x33\x2a\x48\xff\xc3\x48\xff\xc9\x48\x83\xf9\x00\x75\xf1\xeb\x14\xe8\xb0\xff\xff\xff\x2e\x2e\x2e\x2e\x57\x4f\x4f\x44\x59\x2e\x2e\x2e\x2e\x0a\x00\xe9"
+#define XOR42_DATA_LEN 98
 
+#define ROT13_DATA "mama"
+#define ROT13_DATA_LEN 42
 
-# define ELF64_SHELLCODE "\xeb\x18\x48\x31\xff\x48\x31\xf6\x48\x31\xd2\x48\x31\xc0\x40\xb7\x01\x5e\xb2\x07\xb0\x01\x0f\x05\xeb\x0d\xe8\xe3\xff\xff\xff\x63\x6f\x75\x63\x6f\x75\x0a\x00\xe9"
-# define SHELLCODE_LEN 40
+#define RC4_DATA "tata"
+#define RC4_DATA_LEN 42
+
+#define SHELLCODE_LEN 98
+
 enum                e_filetype
 {
-    MACHO32,
-    MACHO64,
     ELF32,
     ELF64,
 	NONE
@@ -51,7 +55,18 @@ enum				e_errtype
 	MALLOC,
 	FSTAT,
 	INVALID,
+	TRUNCATED,
+	NOSPACE,
+	OPEN_NEW,
 	DEFAULT_ERR,
+};
+
+enum				e_cypher
+{
+	XOR42,
+	ROT13,
+	RC4,
+	END_CYPHER
 };
 
 typedef struct		s_wdy_err
@@ -60,73 +75,71 @@ typedef struct		s_wdy_err
 	const char		*mess;
 }					t_wdy_err;
 
+typedef struct		s_wdy_payload t_wdy_payload;
+
 typedef struct s_wdy
 {
-<<<<<<< HEAD
-	enum e_filetype type;
-    char        	*filename;
-    void        	*ptr;
-	void			*end;
-    size_t      	key;
-    size_t      	size;
-	uint8_t			*txt;
-	bool			swap;
-	uint64_t		*p_entry;
-	uint64_t		entry;
-	uint64_t		old_entry;
-	uint64_t		txtsize;
-}               	t_wdy;
+    char        *filename;
+    void        *ptr;
+	enum e_cypher cypher;
+	void		*end;
+    size_t      key;
+    size_t      size;
+	size_t		payloadLen;
+	size_t		payloadIndex;
+	void		*entry_addr;
+	uint64_t	entry;
+	uint64_t	text_addr;
+	int			text_offset;
+	int			text_size;
+}               t_wdy;
+
+typedef struct		s_wdy_payload
+{
+	enum e_cypher	type;
+	const char		*name1;
+	const char		*name2;
+	const char		*data;
+	size_t			len;
+	int				(*fencrypt)(t_wdy *);
+	int				(*finsert)(t_wdy *, int);
+}					t_wdy_payload;
 
 typedef struct		s_woody_handler
 {
 	enum e_filetype	type;
 	size_t			nbytes;
-	uint32_t		mag[2];
-	int				(*f)(t_wdy *, bool);
-	bool			swap;
+	uint8_t			mag[5];
+	int				(*f)(t_wdy *);
 }					t_woody_handler;
-=======
-    char        *filename;
-    void        *ptr;
-    size_t      key;
-    size_t      size;
-	void		*entry_addr;
-	uint64_t		entry;
-}               t_wdy;
->>>>>>> origin/insert_pack
 
+
+int					parse_arg(t_wdy *obj, int ac, char **av);
 int					load_file(char *filename, t_wdy *obj);
 int					release_file(t_wdy *obj);
 int 				insert_pack(t_wdy *obj);
 int					chk_ptr(t_wdy *file, void *begin, size_t size);
 
-int					handle_macho32(t_wdy *obj, bool swap);
-int					handle_macho64(t_wdy *obj, bool swap);
+int					check_null_space(t_wdy *obj);
+
+int					xor42_encrypt(t_wdy *obj);
+int					xor42_insert(t_wdy*obj, int offset);
+int					rot13_encrypt(t_wdy *obj);
+int					rot13_insert(t_wdy*obj, int offset);
+int					rc4_encrypt(t_wdy *obj);
+int					rc4_insert(t_wdy*obj, int offset);
+
+int					handle_elf32(t_wdy *obj);
+int					handle_elf64(t_wdy *obj);
 
 int					dispatcher(t_wdy *obj);
 int					render(t_wdy *obj);
-
-
-
 
 int					er(enum e_errtype type, char *filename);
 int					jmp(t_wdy *obj, void *ptr, unsigned int off, void *ret);
 int					ck(t_wdy *obj, void *ptr, unsigned int off);
 
-
-
-uint16_t			read16(uint16_t *ptr, bool swap);
-uint32_t			read32(uint32_t *ptr, bool swap);
-uint64_t			read64(uint64_t *ptr, bool swap);
-
-uint64_t			*write64(uint64_t *ptr, uint64_t x, bool swap);
-uint32_t			*write32(uint32_t *ptr, uint32_t x, bool swap);
-
-
-
-
-
-
+extern t_wdy_payload	g_payloads[4];
 
 
 #endif // !WOODY_H

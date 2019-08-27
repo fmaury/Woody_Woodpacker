@@ -1,0 +1,6 @@
+t_wdy_payload	g_payloads[] = {
+    {XOR42, "1", "XOR42", XOR42_DATA, XOR42_DATA_LEN, xor42_encrypt, xor42_insert},
+    {ROT13, "2", "ROT13", ROT13_DATA, ROT13_DATA_LEN, rot13_encrypt, rot13_insert},
+    {RC4, "3", "RC4", RC4_DATA, RC4_DATA_LEN, rc4_encrypt, rc4_insert},
+    {END_CYPHER, 0, 0, 0, 0, 0, 0}
+};

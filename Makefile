@@ -28,12 +28,12 @@ SRC				= main.c			\
 				  load.c			\
 				  utils.c			\
 				  check.c			\
-				  dispatcher.c		\
 				  handle_elf64.c	\
 				  handle_elf32.c	\
+				  dispatcher.c		\
 				  render.c			\
-				  insert_pack.c 	\
 				  chk_ptr.c 		\
+				  cypher.c			\
 				  err.c
 					
 OBJ				= $(SRC:.c=.o)
@@ -44,7 +44,7 @@ OBJS			= $(addprefix $(OBJ_DIR)/, $(OBJ))
 
 all : $(NAME)
 
-$(NAME): $(LIB) $(OBJS) $(INC) 
+$(NAME): $(LIB) $(OBJS) $(INC)
 	$(COMPILER) $(CC_FLAGS) -I $(LIB_INC) -I $(INC) $(OBJS) -o $(NAME) -L ./libft -lft
 	@echo " / \   / \   / \   / \   / \   / \ "
 	@echo "( \033[0;32mW\033[0m ) ( \033[0;32mO\033[0m ) ( \033[0;32mO\033[0m ) ( \033[0;32mD\033[0m ) ( \033[0;32mY\033[0m ) ( \033[0;32m.\033[0m )"
@@ -69,7 +69,13 @@ clean:
 fclean: clean
 	rm -rf $(NAME)
 	rm -rf $(LIB)
+	rm -rf woody
 
 re: fclean all
 
-.PHONY: all clean fclean re
+test:
+	./$(NAME) a.out && ./woody
+	./$(NAME) /bin/ls && ./woody
+
+
+.PHONY: all clean fclean re test
