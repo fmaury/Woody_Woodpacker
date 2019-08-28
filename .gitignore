@@ -2,6 +2,7 @@
 # Created by https://www.gitignore.io/api/c,osx,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=c,osx,visualstudiocode
 
+root
 ### C ###
 # Prerequisites
 *.d
