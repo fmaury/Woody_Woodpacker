@@ -12,14 +12,14 @@ print:
     xor rax, rax
     mov dil, 1
     pop rsi
-    mov dl, 7
+    mov dl, 14 
     mov al, 1
     syscall
     jmp lol
 
 msg:
     call print
-    db 'coucou',10,0
+    db '....WOODY....',10,0
 lol:
     jmp fart
 fart:

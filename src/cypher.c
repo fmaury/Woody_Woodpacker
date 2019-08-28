@@ -49,7 +49,15 @@ int         xor42_insert(t_wdy*obj, int offset)
 
 int         rot13_encrypt(t_wdy *obj)
 {
-    (void)obj;
+    int i = 0;
+    unsigned char *encr = (unsigned char*)obj->ptr;
+
+    while (i < obj->text_size)
+    {
+        encr[obj->entry + i] = (encr[obj->entry + i] + 13) % 256;
+        i++;
+    }
+    return (1); 
     return (0);
 }
 
