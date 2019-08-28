@@ -24,6 +24,7 @@ static t_wdy_err		g_wdy_err[] = {
 	{TRUNCATED, "The file is truncated, process canceled"},
 	{NOSPACE, "The file doest not contain enough room to fit the payload"},
 	{OPEN_NEW, "Cannot create a new file"},
+	{ALR_PACKD, "Binary already packed."},
 	{DEFAULT_ERR, "Something wrong happened"},
 };
 

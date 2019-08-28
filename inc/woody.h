@@ -58,6 +58,7 @@ enum				e_errtype
 	TRUNCATED,
 	NOSPACE,
 	OPEN_NEW,
+	ALR_PACKD,
 	DEFAULT_ERR,
 };
 

@@ -55,7 +55,9 @@ static int find_offset(t_wdy *obj)
         sectionName = (char*)(obj->ptr + tableNameSection->sh_offset + sectionHeader->sh_name);
         if (!strcmp(sectionName, ".text"))
         {
-            sectionHeader->sh_flags = SHF_WRITE | SHF_ALLOC | SHF_EXECINSTR ;
+            if (sectionHeader->sh_flags == 0xdeadbeef)
+                return (er(ALR_PACKD, obj->filename));
+            sectionHeader->sh_flags = 0xdeadbeef;
             obj->text_addr = sectionHeader->sh_addr;
             obj->text_offset = (int)sectionHeader->sh_offset;
             obj->text_size = sectionHeader->sh_size;
@@ -67,18 +69,20 @@ static int find_offset(t_wdy *obj)
     }
     if (sec_found && obj->text_size)
         return sec_found;
-    return 0;
+    return er(INVALID, obj->filename);
 }
 
 int check_null_space(t_wdy *obj)
 {
     size_t         i;
+    int             err;
     size_t         nbyte;
     char       *tmp_ptr;
 
-    i = find_offset(obj);
-    if (!i)
-		return (er(INVALID, obj->filename));
+    err = find_offset(obj);
+    if (err < 0)
+		return (-1);
+    i = err;
     nbyte = i;
     tmp_ptr = (char *)obj->ptr;
     while (i < obj->size)
