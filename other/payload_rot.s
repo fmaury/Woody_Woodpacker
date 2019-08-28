@@ -18,22 +18,17 @@ print:
     syscall
     lea rbx, [rel $$] ; 59th byte => -57
     mov rcx, 0x41414141
-    mov rdi, 1
-    mov rsi, rbx
-    mov rdx, 14
-    mov rax, 1
-    push rbx
-    push rcx
-    syscall
-    pop rcx
-    pop rbx
-loop:
+
+rot:
     ;call msug
-    xor byte [rbx], 42
+    xor rax, rax
+    mov al, byte [rbx]
+    sub al, 13
+    mov byte[rbx], al
     inc rbx
     dec rcx
     cmp rcx, 0
-    jne loop
+    jne rot
     jmp lol
 
 msg:
