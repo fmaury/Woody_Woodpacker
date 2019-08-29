@@ -17,6 +17,8 @@ static int seg_writable(t_wdy *obj, Elf64_Ehdr *hdr)
     Elf64_Phdr *phdr;
     int i = 0;
 
+    if (!chk_ptr(obj, obj->ptr + hdr->e_phoff, hdr->e_phnum*sizeof(Elf64_Phdr)))
+        return (er(TRUNCATED, obj->filename));
     phdr = obj->ptr + hdr->e_phoff;
     while (i < hdr->e_phnum)
     {
@@ -38,7 +40,8 @@ static int find_offset(t_wdy *obj)
     char *sectionName;
 
     hdr = (Elf64_Ehdr*)obj->ptr;
-    seg_writable(obj, hdr);
+    if (seg_writable(obj, hdr) < 0)
+        return (-1);
     obj->entry = hdr->e_entry;
     obj->entry_addr = &hdr->e_entry;
     if (!chk_ptr(obj, obj->ptr, hdr->e_shoff))

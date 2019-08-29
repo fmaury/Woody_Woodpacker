@@ -13,7 +13,6 @@
 #include <woody.h>
 
 static t_woody_handler	g_woody_hdlrs[] = {
-	{ELF32, 5, {0x7f, 0x45, 0x4c, 0x46, 0x01}, &handle_elf32},
 	{ELF64, 5, {0x7f, 0x45, 0x4c, 0x46, 0x02}, &handle_elf64},
 	{NONE, 0, {0, 0, 0, 0, 0}, 0}
 };

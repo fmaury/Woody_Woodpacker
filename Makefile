@@ -29,9 +29,7 @@ SRC				= main.c			\
 				  utils.c			\
 				  check.c			\
 				  handle_elf64.c	\
-				  handle_elf32.c	\
 				  dispatcher.c		\
-				  render.c			\
 				  chk_ptr.c 		\
 				  cypher.c			\
 				  err.c

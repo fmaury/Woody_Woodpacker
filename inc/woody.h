@@ -126,11 +126,9 @@ int					rot13_insert(t_wdy*obj, int offset);
 int					rc4_encrypt(t_wdy *obj);
 int					rc4_insert(t_wdy*obj, int offset);
 
-int					handle_elf32(t_wdy *obj);
 int					handle_elf64(t_wdy *obj);
 
 int					dispatcher(t_wdy *obj);
-int					render(t_wdy *obj);
 
 int					er(enum e_errtype type, char *filename);
 int					jmp(t_wdy *obj, void *ptr, unsigned int off, void *ret);
