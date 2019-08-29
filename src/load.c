@@ -17,7 +17,7 @@ static int					check_file(char *filename, int *fd
 {
 	if ((*fd = open(filename, O_RDONLY)) < 0)
 		return (er(OPEN, filename));
-	if (fstat(*fd, buf) < 0)
+	if (syscall(5, *fd, buf) < 0)
 	{
 		close(*fd);
 		return (er(FSTAT, filename));
