@@ -80,13 +80,12 @@ int         rot13_insert(t_wdy*obj, int offset)
     ft_memcpy(obj->ptr + offset + 32, (void *)&obj->text_size, 4);
     *(uint64_t *)obj->entry_addr = offset;
     return (0);
-    return (0);
 }
 
 int         rc4_encrypt(t_wdy *obj)
 {
     char key[] = "Key";
-    unsigned char *input = (unsigned char*)obj->ptr;
+    unsigned char *input = (unsigned char*)(obj->ptr + obj->entry);
     unsigned char S[256];
 	unsigned char t;
 	int n;
