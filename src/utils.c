@@ -24,7 +24,7 @@ int		parse_arg(t_wdy *obj, int ac, char **av)
 {
     int         i = 0;
 
-	if (ac < 2 || ac > 4)
+	if (ac < 2 || ac > 6)
         return (-1);
     if (ac == 2)
     {
@@ -32,13 +32,59 @@ int		parse_arg(t_wdy *obj, int ac, char **av)
 		obj->payloadIndex = 0;
         return (0);
     }
-    if (ft_strcmp(av[2], "-c"))
+    if (ac < 5)
+    {
+        if (!av[3])
+            return (-1);
+        if (!ft_strcmp(av[2], "-c"))
+        {
+            while (g_payloads[i].type != END_CYPHER && ft_strcmp(g_payloads[i].name1, av[3]) && ft_strcmp(g_payloads[i].name2, av[3]))
+                i++;
+            if (g_payloads[i].type == END_CYPHER)
+                return (-1);
+            obj->payloadLen = g_payloads[i].len;
+            obj->payloadIndex = i;
+            return (0);
+        }
+        else if (!ft_strcmp(av[2], "-s"))
+        {
+            if (strlen(av[3])!= 3)
+                return (-1);
+            obj->key = ft_strdup(av[3]);
+            return (0);
+        }
+        else
+            return (-1);
+
+    }
+    int j = 1;
+    while (j < 3)
+    {
+        i = 0;
+        if (!av[j * 2 + 1])
+            return (-1);
+        if (!ft_strcmp(av[j * 2], "-c"))
+        {
+            while (g_payloads[i].type != END_CYPHER && ft_strcmp(g_payloads[i].name1, av[j * 2 + 1]) && ft_strcmp(g_payloads[i].name2, av[j * 2 + 1]))
+                i++;
+            if (g_payloads[i].type == END_CYPHER)
+                return (-1);
+            obj->payloadLen = g_payloads[i].len;
+            obj->payloadIndex = i;
+            break ;
+        }
+        j++;
+    }
+    if (j == 3)
         return (-1);
-    while (g_payloads[i].type != END_CYPHER && ft_strcmp(g_payloads[i].name1, av[3]) && ft_strcmp(g_payloads[i].name2, av[3]))
-        i++;
-    if (g_payloads[i].type == END_CYPHER)
+    if (j == 1)
+        j++;
+    else 
+        j--;
+    if (ft_strcmp("-s", av[j * 2]) || !av[j * 2 + 1])
         return (-1);
-    obj->payloadLen = g_payloads[i].len;
-	obj->payloadIndex = i;
-	return (0);
+    if (strlen(av[j * 2+ 1])!= 3)
+        return (-1);
+    obj->key = ft_strdup(av[j * 2+ 1]);
+    return (0);
 }

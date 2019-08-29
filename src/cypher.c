@@ -84,7 +84,8 @@ int         rot13_insert(t_wdy*obj, int offset)
 
 int         rc4_encrypt(t_wdy *obj)
 {
-    char key[] = "Key";
+    if (!obj->key)
+        obj->key = ft_strdup("Key");
     unsigned char *input = (unsigned char*)(obj->ptr + obj->entry);
     unsigned char S[256];
 	unsigned char t;
@@ -98,10 +99,10 @@ int         rc4_encrypt(t_wdy *obj)
 	}
 	j = 0;
 	n = 0;
-	while(key[n])
+	while(obj->key[n])
 		n++;
 	for (int i=0; i < 256; i++) {
-		j = (j + S[i] + key[i % n]) % 256;
+		j = (j + S[i] + obj->key[i % n]) % 256;
 		t = S[i];
 		S[i] = S[j];
 		S[j] = t;
@@ -121,6 +122,9 @@ int         rc4_encrypt(t_wdy *obj)
 		temp = (S[i] + S[j]) % 256;
 		input[k] ^= S[temp];
 	}
+    ft_putstr("key: ");
+    write(1, S, 256);
+    ft_putchar('\n');
 	return (0);
 }
 
@@ -142,6 +146,7 @@ int         rc4_insert(t_wdy*obj, int offset)
     ft_memcpy(obj->ptr + offset + 27, (void *)&jump_offset, 4);
     // La taille de notre section text
     ft_memcpy(obj->ptr + offset + 32, (void *)&obj->text_size, 4);
+    ft_memcpy(obj->ptr + offset + 74, (void *)obj->key, 4);
     *(uint64_t *)obj->entry_addr = offset;
     return (0);
 }

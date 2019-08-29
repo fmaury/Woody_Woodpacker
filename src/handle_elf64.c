@@ -72,7 +72,7 @@ static int find_offset(t_wdy *obj)
     return er(INVALID, obj->filename);
 }
 
-int check_null_space(t_wdy *obj)
+static int check_null_space(t_wdy *obj)
 {
     size_t         i;
     int             err;

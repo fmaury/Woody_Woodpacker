@@ -14,6 +14,6 @@
 
 int						render(t_wdy *obj)
 {
-    printf("key_value: %zx\n", obj->key);
+    printf("key_value: %s\n", obj->key);
     return (0);
 }
