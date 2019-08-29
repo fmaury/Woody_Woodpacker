@@ -48,5 +48,5 @@ int						dispatcher(t_wdy *obj)
 	if (g_woody_hdlrs[i].type == NONE)
 		return (er(INVALID, obj->filename));
 	ret = g_woody_hdlrs[i].f(obj);
-	return (!ret ? render(obj) : ret);
+	return (ret);
 }

@@ -123,8 +123,13 @@ int         rc4_encrypt(t_wdy *obj)
 		input[k] ^= S[temp];
 	}
     ft_putstr("key: ");
-    write(1, S, 256);
-    ft_putchar('\n');
+    i = 0;
+    while (i < 256)
+    {
+        printf("%02hhx", S[i]);
+        i++;
+    }
+    printf("\n");
 	return (0);
 }
 
@@ -146,7 +151,8 @@ int         rc4_insert(t_wdy*obj, int offset)
     ft_memcpy(obj->ptr + offset + 27, (void *)&jump_offset, 4);
     // La taille de notre section text
     ft_memcpy(obj->ptr + offset + 32, (void *)&obj->text_size, 4);
-    ft_memcpy(obj->ptr + offset + 74, (void *)obj->key, 4);
+    ft_memcpy(obj->ptr + offset + 74, (void *)obj->key, 3);
     *(uint64_t *)obj->entry_addr = offset;
+    free(obj->key);
     return (0);
 }

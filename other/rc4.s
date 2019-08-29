@@ -30,101 +30,177 @@ msg:
 
 key:
     call  getkey
-    db 'Key', 0
+    db 'AAAA', 0
 
 rc4:
-push   rbx
-mov    r8,rdx
-xor    eax,eax
-sub    rsp,0x88
-lea    rcx,[rsp-0x78]
-nop    WORD  [rax+rax*1+0x0]
-l24:
-mov    BYTE  [rcx+rax*1],al
-add    rax,0x1
-cmp    rax,0x100
-jne    l24
-movsx  edx,BYTE  [r8]
-xor    esi,esi
-test   dl,dl
-je     l67
-nop    DWORD  [rax+0x0]
-l56:
-add    rsi,0x1
-cmp    BYTE  [r8+rsi*1],0x0
-jne    l56
-l67:
-mov    r9d,0x1
-lea    r10,[rcx+0xff]
-xor    ebx,ebx
-sub    r9,rcx
-jmp    l114
-nop    WORD  [rax+rax*1+0x0]
-l96:
-lea    rax,[r9+rcx*1]
-xor    edx,edx
-add    rcx,0x1
-div    rsi
-movsx  edx,BYTE  [r8+rdx*1]
-l114:
-movzx  eax,BYTE  [rcx]
-mov    r11d,eax
-add    eax,ebx
-add    eax,edx
-cdq    
-shr    edx,0x18
-add    eax,edx
-movzx  eax,al
-sub    eax,edx
-mov    ebx,eax
-cdqe   
-movzx  edx,BYTE  [rsp+rax*1-0x78]
-mov    BYTE  [rcx],dl
-mov    BYTE  [rsp+rax*1-0x78],r11b
-cmp    r10,rcx
-jne    l96
-movzx  r9d,BYTE  [rdi]
-test   r9b,r9b
-je     l279
-xor    eax,eax
-nop    WORD  [rax+rax*1+0x0]
-l176:
-add    rax,0x1
-cmp    BYTE  [rdi+rax*1],0x0
-jne    l176
-mov    rsi,rdi
-lea    r8,[rax+rdi*1]
-xor    ecx,ecx
-xor    edx,edx
-jmp    l212
-nop    WORD  [rax+rax*1+0x0]
-l208:
-movzx  r9d,BYTE  [rsi]
-l212:
-add    edx,0x1
-add    rsi,0x1
-movzx  r10d,dl
-movzx  eax,BYTE  [rsp+r10*1-0x78]
-mov    rdx,r10
-add    ecx,eax
-movzx  r11d,cl
-movzx  ebx,BYTE  [rsp+r11*1-0x78]
-mov    rcx,r11
-mov    BYTE  [rsp+r10*1-0x78],bl
-mov    BYTE  [rsp+r11*1-0x78],al
-add    al,BYTE  [rsp+r10*1-0x78]
-movzx  eax,al
-xor    r9b,BYTE  [rsp+rax*1-0x78]
-mov    BYTE  [rsi-0x1],r9b
-cmp    r8,rsi
-jne    l208
-l279:
-add    rsp,0x88
-mov    rax,rdi
-pop    rbx
-ret    
+   push   rbp
+   mov    rbp,rsp
+   sub    rsp,0xc0
+   mov    QWORD  [rbp-0x128],rdi
+   mov    QWORD  [rbp-0x130],rsi
+   mov    QWORD  [rbp-0x138],rdx
+   mov    DWORD  [rbp-0x8],0x0
+   mov    DWORD  [rbp-0xc],0x0
+   mov    DWORD  [rbp-0x1c],0x0
+   mov    DWORD  [rbp-0x10],0x0
+   jmp    l83
+l62:
+   mov    eax,DWORD  [rbp-0x10]
+   mov    edx,eax
+   mov    eax,DWORD  [rbp-0x10]
+   cdqe   
+   mov    BYTE  [rbp+rax*1-0x120],dl
+   add    DWORD  [rbp-0x10],0x1
+l83:
+   cmp    DWORD  [rbp-0x10],0xff
+   jle    l62
+   mov    DWORD  [rbp-0xc],0x0
+   mov    DWORD  [rbp-0x4],0x0
+   jmp    l112
+l108:
+   add    DWORD  [rbp-0x4],0x1
+l112:
+   mov    eax,DWORD  [rbp-0x4]
+   movsxd rdx,eax
+   mov    rax,QWORD  [rbp-0x138]
+   add    rax,rdx
+   movzx  eax,BYTE  [rax]
+   test   al,al
+   jne    l108
+   mov    DWORD  [rbp-0x14],0x0
+   jmp    l281
+l147:
+   mov    eax,DWORD  [rbp-0x14]
+   cdqe   
+   movzx  eax,BYTE  [rbp+rax*1-0x120]
+   movzx  edx,al
+   mov    eax,DWORD  [rbp-0xc]
+   lea    ecx,[rdx+rax*1]
+   mov    eax,DWORD  [rbp-0x14]
+   cdq    
+   idiv   DWORD  [rbp-0x4]
+   mov    eax,edx
+   movsxd rdx,eax
+   mov    rax,QWORD  [rbp-0x138]
+   add    rax,rdx
+   movzx  eax,BYTE  [rax]
+   movsx  eax,al
+   lea    edx,[rcx+rax*1]
+   mov    eax,edx
+   sar    eax,0x1f
+   shr    eax,0x18
+   add    edx,eax
+   movzx  edx,dl
+   sub    edx,eax
+   mov    eax,edx
+   mov    DWORD  [rbp-0xc],eax
+   mov    eax,DWORD  [rbp-0x14]
+   cdqe   
+   movzx  eax,BYTE  [rbp+rax*1-0x120]
+   mov    BYTE  [rbp-0x1d],al
+   mov    eax,DWORD  [rbp-0xc]
+   cdqe   
+   movzx  edx,BYTE  [rbp+rax*1-0x120]
+   mov    eax,DWORD  [rbp-0x14]
+   cdqe   
+   mov    BYTE  [rbp+rax*1-0x120],dl
+   mov    eax,DWORD  [rbp-0xc]
+   cdqe   
+   movzx  edx,BYTE  [rbp-0x1d]
+   mov    BYTE  [rbp+rax*1-0x120],dl
+   add    DWORD  [rbp-0x14],0x1
+l281:
+   cmp    DWORD  [rbp-0x14],0xff
+   jle    l147
+   mov    DWORD  [rbp-0x8],0x0
+   mov    DWORD  [rbp-0xc],0x0
+   mov    DWORD  [rbp-0x4],0x0
+   jmp    l321
+l317:
+   add    DWORD  [rbp-0x4],0x1
+l321:
+   mov    eax,DWORD  [rbp-0x4]
+   movsxd rdx,eax
+   mov    rax,QWORD  [rbp-0x128]
+   add    rax,rdx
+   movzx  eax,BYTE  [rax]
+   test   al,al
+   jne    l317
+   mov    DWORD  [rbp-0x18],0x0
+   jmp    l574
+l356:
+   mov    eax,DWORD  [rbp-0x8]
+   lea    edx,[rax+0x1]
+   mov    eax,edx
+   sar    eax,0x1f
+   shr    eax,0x18
+   add    edx,eax
+   movzx  edx,dl
+   sub    edx,eax
+   mov    eax,edx
+   mov    DWORD  [rbp-0x8],eax
+   mov    eax,DWORD  [rbp-0x8]
+   cdqe   
+   movzx  eax,BYTE  [rbp+rax*1-0x120]
+   movzx  edx,al
+   mov    eax,DWORD  [rbp-0xc]
+   add    edx,eax
+   mov    eax,edx
+   sar    eax,0x1f
+   shr    eax,0x18
+   add    edx,eax
+   movzx  edx,dl
+   sub    edx,eax
+   mov    eax,edx
+   mov    DWORD  [rbp-0xc],eax
+   mov    eax,DWORD  [rbp-0x8]
+   cdqe   
+   movzx  eax,BYTE  [rbp+rax*1-0x120]
+   mov    BYTE  [rbp-0x1d],al
+   mov    eax,DWORD  [rbp-0xc]
+   cdqe   
+   movzx  edx,BYTE  [rbp+rax*1-0x120]
+   mov    eax,DWORD  [rbp-0x8]
+   cdqe   
+   mov    BYTE  [rbp+rax*1-0x120],dl
+   mov    eax,DWORD  [rbp-0xc]
+   cdqe   
+   movzx  edx,BYTE  [rbp-0x1d]
+   mov    BYTE  [rbp+rax*1-0x120],dl
+   mov    eax,DWORD  [rbp-0x8]
+   cdqe   
+   movzx  edx,BYTE  [rbp+rax*1-0x120]
+   mov    eax,DWORD  [rbp-0xc]
+   cdqe   
+   movzx  eax,BYTE  [rbp+rax*1-0x120]
+   add    eax,edx
+   movzx  eax,al
+   mov    DWORD  [rbp-0x1c],eax
+   mov    eax,DWORD  [rbp-0x18]
+   movsxd rdx,eax
+   mov    rax,QWORD  [rbp-0x128]
+   add    rax,rdx
+   movzx  ecx,BYTE  [rax]
+   mov    eax,DWORD  [rbp-0x1c]
+   cdqe   
+   movzx  eax,BYTE  [rbp+rax*1-0x120]
+   mov    esi,eax
+   mov    eax,DWORD  [rbp-0x18]
+   movsxd rdx,eax
+   mov    rax,QWORD  [rbp-0x128]
+   add    rax,rdx
+   xor    ecx,esi
+   mov    edx,ecx
+   mov    BYTE  [rax],dl
+   add    DWORD  [rbp-0x18],0x1
+l574:
+   mov    eax,DWORD  [rbp-0x18]
+   cmp    eax,DWORD  [rbp-0x4]
+   jl     l356
+   mov    rax,QWORD  [rbp-0x128]
+   leave  
+   ret    
 
 lol:
-    jmp ui
+   jmp ui
 ui:
-
