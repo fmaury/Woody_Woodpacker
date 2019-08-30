@@ -19,6 +19,20 @@ t_wdy_payload	g_payloads[4] = {
     {END_CYPHER, 0, 0, 0, 0, 0, 0}
 };
 
+int     is_good_key(char *s)
+{
+    size_t i = 0;
+
+    if (strlen(s) != 3)
+        return (0);
+    while (i < strlen(s))
+    {
+        if (s[i] < 33 || s[i] > 125)
+            return (0);
+        i++;
+    }
+    return (1);
+}
 
 int		parse_arg(t_wdy *obj, int ac, char **av)
 {
@@ -48,7 +62,7 @@ int		parse_arg(t_wdy *obj, int ac, char **av)
         }
         else if (!ft_strcmp(av[2], "-s"))
         {
-            if (strlen(av[3])!= 3)
+            if (!is_good_key(av[3]))
                 return (-1);
             obj->key = ft_strdup(av[3]);
             return (0);
@@ -83,7 +97,7 @@ int		parse_arg(t_wdy *obj, int ac, char **av)
         j--;
     if (ft_strcmp("-s", av[j * 2]) || !av[j * 2 + 1])
         return (-1);
-    if (strlen(av[j * 2+ 1])!= 3)
+    if (!is_good_key(av[j * 2+ 1]))
         return (-1);
     obj->key = ft_strdup(av[j * 2+ 1]);
     return (0);
