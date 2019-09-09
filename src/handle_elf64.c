@@ -61,12 +61,10 @@ static int find_offset(t_wdy *obj)
             if (sectionHeader->sh_flags == 0xdeadbeef)
                 return (er(ALR_PACKD, obj->filename));
             sectionHeader->sh_flags = 0xdeadbeef;
-            obj->text_addr = sectionHeader->sh_addr;
-            obj->text_offset = (int)sectionHeader->sh_offset;
             obj->text_size = sectionHeader->sh_size;
         }
         if (!ft_strcmp(sectionName, ".rodata"))
-            sec_found = (int)sectionHeader->sh_offset;
+            sec_found = (int)sectionHeader->sh_addr;
         sectionHeader++;
         i++;
     }
