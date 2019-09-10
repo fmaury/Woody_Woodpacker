@@ -89,6 +89,7 @@ typedef struct s_wdy
 	void		*entry_addr;
 	uint64_t	entry;
 	int			text_size;
+	int			diff;
 }               t_wdy;
 
 typedef struct		s_wdy_payload

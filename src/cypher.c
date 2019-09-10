@@ -16,10 +16,11 @@ int         xor42_encrypt(t_wdy *obj)
 {
     int i = 0;
     char *encr = (char*)obj->ptr;
+    int tmp = obj->entry - obj->diff;
 
-    while (i < obj->text_size)
+    while (encr[tmp + i] && i < obj->text_size)
     {
-        encr[obj->entry + i] ^= 42;
+        encr[tmp + i] ^= 42;
         i++;
     }
     return (1); 
@@ -45,10 +46,12 @@ int         rot13_encrypt(t_wdy *obj)
 {
     int i = 0;
     unsigned char *encr = (unsigned char*)obj->ptr;
+    int tmp = obj->entry - obj->diff;
 
-    while (i < obj->text_size)
+
+    while (encr[tmp + i] && i < obj->text_size)
     {
-        encr[obj->entry + i] = (encr[obj->entry + i] + 13) % 256;
+        encr[tmp + i] = (encr[tmp + i] + 13) % 256;
         i++;
     }
     return (1); 
@@ -74,7 +77,7 @@ int         rc4_encrypt(t_wdy *obj)
 {
     if (!obj->key)
         obj->key = ft_strdup("Key");
-    unsigned char *input = (unsigned char*)(obj->ptr + obj->entry);
+    unsigned char *input = (unsigned char*)(obj->ptr + (obj->entry - obj->diff));
     unsigned char S[256];
 	unsigned char t;
 	int n;

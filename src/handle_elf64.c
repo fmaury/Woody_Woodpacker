@@ -22,8 +22,7 @@ static int seg_writable(t_wdy *obj, Elf64_Ehdr *hdr)
     phdr = obj->ptr + hdr->e_phoff;
     while (i < hdr->e_phnum)
     {
-        if (phdr->p_type == PT_LOAD)
-            phdr->p_flags = PF_R | PF_W | PF_X;
+        phdr->p_flags = PF_R | PF_W | PF_X;
         phdr++;
         i++;
     }
@@ -60,11 +59,17 @@ static int find_offset(t_wdy *obj)
         {
             if (sectionHeader->sh_flags == 0xdeadbeef)
                 return (er(ALR_PACKD, obj->filename));
-            sectionHeader->sh_flags = 0xdeadbeef;
-            obj->text_size = sectionHeader->sh_size;
+            // sectionHeader->sh_flags = 0xdeadbeef;
+            obj->text_size = sectionHeader->sh_size - (obj->entry - sectionHeader->sh_addr);
+            // printf("entry:%ld size:%d obj:%ld textof:%ld\n",obj->entry, obj->text_size, obj->size, sectionHeader->sh_addr);
         }
-        if (!ft_strcmp(sectionName, ".rodata"))
+        if (!ft_strcmp(sectionName, ".interp"))
+        {
             sec_found = (int)sectionHeader->sh_addr;
+            // printf("sec:%d\n",sec_found);
+
+            obj->diff = sectionHeader->sh_addr - sectionHeader->sh_offset;
+        }
         sectionHeader++;
         i++;
     }
@@ -83,7 +88,7 @@ static int check_null_space(t_wdy *obj)
     err = find_offset(obj);
     if (err < 0)
 		return (-1);
-    i = err;
+    i = err ;
     nbyte = i;
     tmp_ptr = (char *)obj->ptr;
     while (i < obj->size)
