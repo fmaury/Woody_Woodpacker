@@ -59,15 +59,12 @@ static int find_offset(t_wdy *obj)
         {
             if (sectionHeader->sh_flags == 0xdeadbeef)
                 return (er(ALR_PACKD, obj->filename));
-            // sectionHeader->sh_flags = 0xdeadbeef;
+            sectionHeader->sh_flags = 0xdeadbeef;
             obj->text_size = sectionHeader->sh_size - (obj->entry - sectionHeader->sh_addr);
-            // printf("entry:%ld size:%d obj:%ld textof:%ld\n",obj->entry, obj->text_size, obj->size, sectionHeader->sh_addr);
         }
         if (!ft_strcmp(sectionName, ".interp"))
         {
             sec_found = (int)sectionHeader->sh_addr;
-            // printf("sec:%d\n",sec_found);
-
             obj->diff = sectionHeader->sh_addr - sectionHeader->sh_offset;
         }
         sectionHeader++;
