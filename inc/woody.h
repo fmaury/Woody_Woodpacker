@@ -104,7 +104,7 @@ typedef struct		s_wdy_payload
 	const char		*data;
 	size_t			len;
 	int				(*fencrypt)(t_wdy *);
-	int				(*finsert)(t_wdy *, int);
+	int				(*finsert)(t_wdy *);
 }					t_wdy_payload;
 
 typedef struct		s_woody_handler
@@ -123,11 +123,10 @@ int 				insert_pack(t_wdy *obj);
 int					chk_ptr(t_wdy *file, void *begin, size_t size);
 
 int					xor42_encrypt(t_wdy *obj);
-int					insert(t_wdy*obj, int offset);
+int					insert(t_wdy*obj);
 int					rot13_encrypt(t_wdy *obj);
-int					rot13_insert(t_wdy*obj, int offset);
 int					rc4_encrypt(t_wdy *obj);
-int					rc4_insert(t_wdy*obj, int offset);
+int					rc4_insert(t_wdy*obj);
 
 int					handle_elf64(t_wdy *obj);
 

@@ -12,6 +12,37 @@
 
 #include <woody.h>
 
+static void sort_addr(t_wdy *obj, Elf64_Shdr **addr)
+{
+    int i = 0;
+    Elf64_Shdr *tmp;
+
+    while (addr[i + 1])
+    {
+        if (addr[i]->sh_offset > addr[i+1]->sh_offset)
+        {
+            tmp = addr[i];
+            addr[i] = addr[i + 1];
+            addr[i + 1] = tmp;
+            if ( i > 0)
+            i--;
+        }
+        else
+            i++;
+    }
+    i = 0;
+    while (addr[i + 1])
+    {
+        if (addr[i]->sh_offset > 0 && (int)(addr[i+1]->sh_offset - (addr[i]->sh_offset + addr[i]->sh_size)) > 0 && addr[i+1]->sh_offset - (addr[i]->sh_offset + addr[i]->sh_size) > obj->payloadLen)
+        {
+            obj->sec_vaddr = addr[i]->sh_addr + addr[i]->sh_size + 1;
+            obj->sec_off = addr[i]->sh_offset + addr[i]->sh_size + 1;
+            break ;
+        }
+        i++;
+    }
+}
+
 static int seg_writable(t_wdy *obj, Elf64_Ehdr *hdr)
 {
     Elf64_Phdr *phdr;
@@ -37,6 +68,8 @@ static int find_offset(t_wdy *obj)
     Elf64_Shdr *sectionHeader;
     Elf64_Shdr *tableNameSection;
     char *sectionName;
+    Elf64_Shdr *addr[40]= {NULL};
+
 
     (void)sec_found;
     hdr = (Elf64_Ehdr*)obj->ptr;
@@ -65,56 +98,27 @@ static int find_offset(t_wdy *obj)
             obj->text_vaddr = sectionHeader->sh_addr;
             obj->text_size = sectionHeader->sh_size;
         }
-        if (!ft_strcmp(sectionName, ".interp"))
-        {
-            obj->sec_off = (int)sectionHeader->sh_offset;
-            obj->sec_vaddr = (int)sectionHeader->sh_addr;
-        }
+        addr[i] = sectionHeader;
         sectionHeader++;
         i++;
     }
+    addr[i] = NULL;
+    if (!obj->sec_off)
+    sort_addr(obj, addr);
+
     if (obj->sec_off && obj->text_off)
         return 1;
-    return er(INVALID, obj->filename);
-}
-
-static int check_null_space(t_wdy *obj)
-{
-    size_t         i;
-    int             err;
-    size_t         nbyte;
-    char       *tmp_ptr;
-
-    err = find_offset(obj);
-    if (err < 0)
-		return (-1);
-    i = obj->sec_off;
-    nbyte = i;
-    tmp_ptr = (char *)obj->ptr;
-    while (i < obj->size)
-    {
-        if (tmp_ptr[i])
-            nbyte = i + 1;
-        else if (i - nbyte >= obj->payloadLen)
-            {
-                obj->sec_vaddr += (nbyte - obj->sec_off);
-                obj->sec_off = nbyte;
-                return (nbyte);
-            }
-        i++;
-    }
-    return (er(NOSPACE, obj->filename));
+    return er(NOSPACE, obj->filename);
 }
 
 int				handle_elf64(t_wdy *obj)
 {
 	int				fd;
-	int			offset;
 
-	if ((offset = check_null_space(obj)) == -1)
+	if (find_offset(obj) == -1)
 		return (-1);
     g_payloads[obj->payloadIndex].fencrypt(obj);
-	g_payloads[obj->payloadIndex].finsert(obj, offset);
+	g_payloads[obj->payloadIndex].finsert(obj);
     if ((fd = open(BIN_NAME, O_CREAT | O_WRONLY, 0777)) == -1)
 		return (er(OPEN_NEW, obj->filename));
     write(fd, obj->ptr, obj->size);
