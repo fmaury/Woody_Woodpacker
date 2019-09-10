@@ -13,7 +13,7 @@
 #include <woody.h>
 
 t_wdy_payload	g_payloads[4] = {
-    {XOR42, "1", "XOR42", XOR42_DATA, XOR42_DATA_LEN, xor42_encrypt, xor42_insert},
+    {XOR42, "1", "XOR42", XOR42_DATA, XOR42_DATA_LEN, xor42_encrypt, insert},
     {ROT13, "2", "ROT13", ROT13_DATA, ROT13_DATA_LEN, rot13_encrypt, rot13_insert},
     {RC4, "3", "RC4", RC4_DATA, RC4_DATA_LEN, rc4_encrypt, rc4_insert},
     {END_CYPHER, 0, 0, 0, 0, 0, 0}

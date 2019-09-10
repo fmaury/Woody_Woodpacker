@@ -38,6 +38,7 @@ static int find_offset(t_wdy *obj)
     Elf64_Shdr *tableNameSection;
     char *sectionName;
 
+    (void)sec_found;
     hdr = (Elf64_Ehdr*)obj->ptr;
     if (seg_writable(obj, hdr) < 0)
         return (-1);
@@ -59,19 +60,21 @@ static int find_offset(t_wdy *obj)
         {
             if (sectionHeader->sh_flags == 0xdeadbeef)
                 return (er(ALR_PACKD, obj->filename));
-            sectionHeader->sh_flags = 0xdeadbeef;
-            obj->text_size = sectionHeader->sh_size - (obj->entry - sectionHeader->sh_addr);
+            // sectionHeader->sh_flags = 0xdeadbeef;
+            obj->text_off = sectionHeader->sh_offset;
+            obj->text_vaddr = sectionHeader->sh_addr;
+            obj->text_size = sectionHeader->sh_size;
         }
         if (!ft_strcmp(sectionName, ".interp"))
         {
-            sec_found = (int)sectionHeader->sh_addr;
-            obj->diff = sectionHeader->sh_addr - sectionHeader->sh_offset;
+            obj->sec_off = (int)sectionHeader->sh_offset;
+            obj->sec_vaddr = (int)sectionHeader->sh_addr;
         }
         sectionHeader++;
         i++;
     }
-    if (sec_found && obj->text_size)
-        return sec_found;
+    if (obj->sec_off && obj->text_off)
+        return 1;
     return er(INVALID, obj->filename);
 }
 
@@ -85,7 +88,7 @@ static int check_null_space(t_wdy *obj)
     err = find_offset(obj);
     if (err < 0)
 		return (-1);
-    i = err ;
+    i = obj->sec_off;
     nbyte = i;
     tmp_ptr = (char *)obj->ptr;
     while (i < obj->size)
@@ -93,7 +96,11 @@ static int check_null_space(t_wdy *obj)
         if (tmp_ptr[i])
             nbyte = i + 1;
         else if (i - nbyte >= obj->payloadLen)
-            return (nbyte);
+            {
+                obj->sec_vaddr += (nbyte - obj->sec_off);
+                obj->sec_off = nbyte;
+                return (nbyte);
+            }
         i++;
     }
     return (er(NOSPACE, obj->filename));
