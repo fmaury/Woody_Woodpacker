@@ -26,6 +26,7 @@
 # define STDERR     2
 # define DEBUG		1
 # define BIN_NAME	"woody"
+# define SIZE		4096
 
 extern uint64_t params[3];
 

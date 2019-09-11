@@ -12,62 +12,66 @@
 
 #include <woody.h>
 
-static int seg_writable(t_wdy *obj, Elf64_Ehdr *hdr)
+static Elf64_Phdr   *getseg(t_wdy *obj, Elf64_Ehdr *hdr, unsigned int index)
 {
-    Elf64_Phdr *phdr;
-    int i = 0;
+    return (obj->ptr + hdr->e_phoff + index * sizeof(Elf64_Phdr));
+}
 
-    if (!chk_ptr(obj, obj->ptr + hdr->e_phoff, hdr->e_phnum*sizeof(Elf64_Phdr)))
+static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
+{
+    Elf64_Phdr      *seg;
+    unsigned int    i = 0;
+    bool            found = false;
+
+    if (!chk_ptr(obj, obj->ptr + hdr->e_phoff, hdr->e_phnum * sizeof(Elf64_Phdr)))
         return (er(TRUNCATED, obj->filename));
-    phdr = obj->ptr + hdr->e_phoff;
     while (i < hdr->e_phnum)
     {
-        if (phdr->p_type == PT_LOAD)
-            phdr->p_flags = PF_R | PF_W | PF_X;
-        phdr++;
+        seg = getseg(obj, hdr, i);
+        if (found)
+        {
+            seg->p_offset += SIZE;
+        }
+        if (hdr->e_entry > seg->p_vaddr && hdr->e_entry < seg->p_vaddr + seg->p_filesz)
+        {
+            seg->p_memsz += SIZE;
+            seg->p_filesz += SIZE;
+            found = true;
+        }
+        if (found)
+            seg->p_flags = PF_W | PF_R | PF_X;
         i++;
     }
     return (1);
 }
 
-static int find_offset(t_wdy *obj)
+static int updsec(t_wdy *obj)
 {
     int i = 0;
     int sec_found = 0;
     Elf64_Ehdr *hdr;
-    Elf64_Shdr *sectionHeader;
-    Elf64_Shdr *tableNameSection;
-    char *sectionName;
+    Elf64_Shdr *sec;
 
     hdr = (Elf64_Ehdr*)obj->ptr;
-    if (seg_writable(obj, hdr) < 0)
+    if (updseg(obj, hdr) < 0)
         return (-1);
     obj->entry = hdr->e_entry;
     obj->entry_addr = &hdr->e_entry;
     if (!chk_ptr(obj, obj->ptr, hdr->e_shoff))
         return (er(TRUNCATED, obj->filename));
-    sectionHeader = obj->ptr + hdr->e_shoff;
-    if (!chk_ptr(obj, sectionHeader, hdr->e_shstrndx))
-        return (er(TRUNCATED, obj->filename));
-    tableNameSection = sectionHeader + hdr->e_shstrndx;
+    sec = obj->ptr + hdr->e_shoff;
+    if (sec->sh_flags == 0xdeadbeef)
+        return (er(ALR_PACKD, obj->filename));
+    sec->sh_flags = 0xdeadbeef;
     while (i < hdr->e_shnum)
     {
-        if (!chk_ptr(obj, obj->ptr, tableNameSection->sh_offset + sectionHeader->sh_name) ||
-        !chk_ptr(obj, sectionHeader, sizeof(*sectionHeader)))
-	        return (er(TRUNCATED, obj->filename));
-        sectionName = (char*)(obj->ptr + tableNameSection->sh_offset + sectionHeader->sh_name);
-        if (!ft_strcmp(sectionName, ".text"))
+        if (hdr->e_entry > sec->sh_addr && hdr->e_entry <= sec->sh_addr + sec->sh_size)
         {
-            if (sectionHeader->sh_flags == 0xdeadbeef)
-                return (er(ALR_PACKD, obj->filename));
-            sectionHeader->sh_flags = 0xdeadbeef;
-            obj->text_addr = sectionHeader->sh_addr;
-            obj->text_offset = (int)sectionHeader->sh_offset;
-            obj->text_size = sectionHeader->sh_size;
+            obj->text_addr = sec->sh_addr;
+            obj->text_offset = (int)sec->sh_offset;
+            obj->text_size = sec->sh_size;
         }
-        if (!ft_strcmp(sectionName, ".rodata"))
-            sec_found = (int)sectionHeader->sh_offset;
-        sectionHeader++;
+        sec++;
         i++;
     }
     if (sec_found && obj->text_size)
