@@ -4,7 +4,7 @@ global params
 global putwoody
 
 putwoody:
-    jmp short msg
+    jmp msg
 
 print:
     xor rdi, rdi
@@ -26,10 +26,10 @@ msg:
     db '....WOODY....',10,0
 
 sectxt:
-    lea rax, [rel entrypgm]
-    jmp rax
+    mov rax, entrypgm
+    jmp 0x0000000000001135
 
 params:
-txtaddr: dq 0xAABBCCDDAABBCCDD  
+txtaddr: dq 0xAABBCCDDAABBCCDD
 txtlen: dq 0xFFFFFFFFFFFFFFFF
 entrypgm: dq 0xAABBCCDDAABBCCDD

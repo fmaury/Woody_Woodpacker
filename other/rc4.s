@@ -22,7 +22,7 @@ print:
 getkey:
     pop rdx 
     call rc4
-    jmp lol
+    jmp putwoody
 
 msg:
     call print

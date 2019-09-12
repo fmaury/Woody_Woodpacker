@@ -26,16 +26,18 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
         if (found)
         {
             seg->p_offset += SIZE;
+            seg->p_flags |= PF_W;
             seg->p_vaddr += SIZE;
-            // seg->p_paddr += SIZE;
+
+            seg->p_paddr += SIZE;
         }
         if (hdr->e_entry >= seg->p_vaddr && hdr->e_entry <= seg->p_vaddr + seg->p_filesz)
         {
             obj->text_addr = seg->p_vaddr;
             obj->text_offset = seg->p_offset;
             obj->text_size = seg->p_filesz;
-            seg->p_memsz += SIZE;
-            seg->p_filesz += SIZE;
+            seg->p_memsz += obj->payloadLen;
+            seg->p_filesz += obj->payloadLen;
             seg->p_flags |= PF_W;
             found = true;
         }
@@ -70,13 +72,13 @@ static int update(t_wdy *obj)
             sec->sh_offset += SIZE;
             sec->sh_addr += SIZE;
         }
-        if (hdr->e_entry >= sec->sh_addr && hdr->e_entry <= sec->sh_addr + sec->sh_size)
+        if (hdr->e_entry >= sec->sh_addr && hdr->e_entry < sec->sh_addr + sec->sh_size)
         {
             obj->sc_addr = sec->sh_addr;
             obj->sc_offset = sec->sh_offset;
             obj->sc_size = sec->sh_size;
         }
-        if (sec->sh_addr + sec->sh_size == obj->text_addr + obj->text_size)
+        if (sec->sh_offset + sec->sh_size == obj->text_offset + obj->text_size)
         {
             printf("found last section of segment text\n");
             sec->sh_size += obj->payloadLen;
@@ -86,6 +88,8 @@ static int update(t_wdy *obj)
         i++;
     }
     hdr->e_shoff += SIZE;
+    hdr->e_entry = obj->text_addr + obj->text_size;
+    printf("old entry: %lu\n", obj->old_entry);
     return (0);
 }
 
@@ -110,7 +114,7 @@ int				handle_elf64(t_wdy *obj)
 		return (er(MUNMAP, obj->filename));
     obj->ptr = tmp;
     g_payloads[obj->payloadIndex].fencrypt(obj);
-	g_payloads[obj->payloadIndex].finsert(obj, obj->sc_offset + obj->sc_size);
+	g_payloads[obj->payloadIndex].finsert(obj, obj->text_offset + obj->text_size);
     if ((fd = open(BIN_NAME, O_CREAT | O_WRONLY, 0777)) == -1)
 		return (er(OPEN_NEW, obj->filename));
     write(fd, obj->ptr, obj->size + SIZE);
