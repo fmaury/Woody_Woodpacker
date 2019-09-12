@@ -21,16 +21,8 @@ t_wdy_payload	g_payloads[4] = {
 
 int     is_good_key(char *s)
 {
-    size_t i = 0;
-
-    if (ft_strlen(s) != 3)
+    if (ft_strlen(s) < 3 || ft_strlen(s) > 16)
         return (0);
-    while (i < ft_strlen(s))
-    {
-        if (s[i] < 33 || s[i] > 125)
-            return (0);
-        i++;
-    }
     return (1);
 }
 

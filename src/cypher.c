@@ -107,7 +107,7 @@ int         rc4_encrypt(t_wdy *obj)
 int         rc4_insert(t_wdy*obj)
 {
     insert(obj);
-    ft_memcpy(obj->ptr + obj->sec_off + 74, (void *)obj->key, 3);
+    ft_memcpy(obj->ptr + obj->sec_off + 74, (void *)obj->key, ft_strlen(obj->key));
     free(obj->key);
     return (0);
 }
