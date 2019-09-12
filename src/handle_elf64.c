@@ -12,11 +12,6 @@
 
 #include <woody.h>
 
-static Elf64_Phdr   *getseg(t_wdy *obj, Elf64_Ehdr *hdr, unsigned int index)
-{
-    return (obj->ptr + hdr->e_phoff + index * sizeof(Elf64_Phdr));
-}
-
 static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
 {
     Elf64_Phdr      *seg;
@@ -25,96 +20,100 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
 
     if (!chk_ptr(obj, obj->ptr + hdr->e_phoff, hdr->e_phnum * sizeof(Elf64_Phdr)))
         return (er(TRUNCATED, obj->filename));
+    seg = obj->ptr + hdr->e_phoff;
     while (i < hdr->e_phnum)
     {
-        seg = getseg(obj, hdr, i);
         if (found)
         {
             seg->p_offset += SIZE;
+            seg->p_vaddr += SIZE;
+            // seg->p_paddr += SIZE;
         }
-        if (hdr->e_entry > seg->p_vaddr && hdr->e_entry < seg->p_vaddr + seg->p_filesz)
+        if (hdr->e_entry >= seg->p_vaddr && hdr->e_entry <= seg->p_vaddr + seg->p_filesz)
         {
+            obj->text_addr = seg->p_vaddr;
+            obj->text_offset = seg->p_offset;
+            obj->text_size = seg->p_filesz;
             seg->p_memsz += SIZE;
             seg->p_filesz += SIZE;
+            seg->p_flags |= PF_W;
             found = true;
         }
-        if (found)
-            seg->p_flags = PF_W | PF_R | PF_X;
         i++;
+        seg++;
     }
     return (1);
 }
 
-static int updsec(t_wdy *obj)
+static int update(t_wdy *obj)
 {
-    int i = 0;
-    int sec_found = 0;
+    unsigned int    i = 0;
+    bool            found = false;
     Elf64_Ehdr *hdr;
     Elf64_Shdr *sec;
 
     hdr = (Elf64_Ehdr*)obj->ptr;
     if (updseg(obj, hdr) < 0)
         return (-1);
-    obj->entry = hdr->e_entry;
-    obj->entry_addr = &hdr->e_entry;
-    if (!chk_ptr(obj, obj->ptr, hdr->e_shoff))
+    obj->old_entry = hdr->e_entry;
+    if (!chk_ptr(obj, obj->ptr, hdr->e_shoff + sizeof(Elf64_Shdr) * hdr->e_shnum))
         return (er(TRUNCATED, obj->filename));
     sec = obj->ptr + hdr->e_shoff;
-    if (sec->sh_flags == 0xdeadbeef)
-        return (er(ALR_PACKD, obj->filename));
-    sec->sh_flags = 0xdeadbeef;
+    // if (sec->sh_flags == 0xdeadbeef)
+    //     return (er(ALR_PACKD, obj->filename));
+    // sec->sh_flags = 0xdeadbeef;
     while (i < hdr->e_shnum)
     {
-        if (hdr->e_entry > sec->sh_addr && hdr->e_entry <= sec->sh_addr + sec->sh_size)
+        printf("section %u\n", i);
+        if (found)
         {
-            obj->text_addr = sec->sh_addr;
-            obj->text_offset = (int)sec->sh_offset;
-            obj->text_size = sec->sh_size;
+            sec->sh_offset += SIZE;
+            sec->sh_addr += SIZE;
+        }
+        if (hdr->e_entry >= sec->sh_addr && hdr->e_entry <= sec->sh_addr + sec->sh_size)
+        {
+            obj->sc_addr = sec->sh_addr;
+            obj->sc_offset = sec->sh_offset;
+            obj->sc_size = sec->sh_size;
+        }
+        if (sec->sh_addr + sec->sh_size == obj->text_addr + obj->text_size)
+        {
+            printf("found last section of segment text\n");
+            sec->sh_size += obj->payloadLen;
+            found = true;
         }
         sec++;
         i++;
     }
-    if (sec_found && obj->text_size)
-        return sec_found;
-    return er(INVALID, obj->filename);
-}
-
-static int check_null_space(t_wdy *obj)
-{
-    size_t         i;
-    int             err;
-    size_t         nbyte;
-    char       *tmp_ptr;
-
-    err = find_offset(obj);
-    if (err < 0)
-		return (-1);
-    i = err;
-    nbyte = i;
-    tmp_ptr = (char *)obj->ptr;
-    while (i < obj->size)
-    {
-        if (tmp_ptr[i])
-            nbyte = i + 1;
-        else if (i - nbyte >= obj->payloadLen)
-            return (nbyte);
-        i++;
-    }
-    return (er(NOSPACE, obj->filename));
+    hdr->e_shoff += SIZE;
+    return (0);
 }
 
 int				handle_elf64(t_wdy *obj)
 {
 	int				fd;
-	int			offset;
+    void            *tmp;
 
-	if ((offset = check_null_space(obj)) == -1)
-		return (-1);
+    if (update(obj) < 0)
+        return (-1);
+    if (!(tmp = ft_memalloc(obj->size + SIZE)))
+        return (er(MALLOC, obj->filename));
+    ft_memcpy(tmp, obj->ptr, obj->text_offset + obj->text_size);
+    printf("sg addr %lu offset %lu size %lu\n", obj->text_addr, obj->text_offset, obj->text_size);
+    printf("sc addr %lu offset %lu size %lu\n", obj->sc_addr, obj->sc_offset, obj->sc_size);
+    printf("memmove(%p, %p, %lu)  size: %lu\n", obj->ptr + obj->text_offset + obj->text_size + SIZE, obj->ptr + obj->text_offset + obj->text_size, obj->size - (obj->text_offset + obj->text_size), obj->size);
+    printf("ptr %p end : %p mememove end : %p\n", obj->ptr, obj->ptr + obj->size + SIZE, obj->ptr + obj->text_offset + obj->text_size + SIZE + obj->size - (obj->text_offset + obj->text_size));
+    ft_memmove(tmp + obj->text_offset + obj->text_size + SIZE, obj->ptr + obj->text_offset + obj->text_size, obj->size - (obj->text_offset + obj->text_size));
+    puts("memmove ok");
+    printf("offset stub : %lx\n", obj->text_offset + obj->text_size);
+    if (munmap(obj->ptr, obj->size) < 0)
+		return (er(MUNMAP, obj->filename));
+    obj->ptr = tmp;
     g_payloads[obj->payloadIndex].fencrypt(obj);
-	g_payloads[obj->payloadIndex].finsert(obj, offset);
+	g_payloads[obj->payloadIndex].finsert(obj, obj->sc_offset + obj->sc_size);
     if ((fd = open(BIN_NAME, O_CREAT | O_WRONLY, 0777)) == -1)
 		return (er(OPEN_NEW, obj->filename));
-    write(fd, obj->ptr, obj->size);
+    write(fd, obj->ptr, obj->size + SIZE);
     if (close(fd) == -1){
     	return (er(CLOSE, obj->filename));}
 	return (0);

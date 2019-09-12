@@ -51,7 +51,8 @@ int							load_file(char *filename, t_wdy *obj)
 
 int							release_file(t_wdy *obj)
 {
-	if (munmap(obj->ptr, obj->size) < 0)
-		return (er(MUNMAP, obj->filename));
+	if (!obj->ptr)
+		return (0);
+	free(obj->ptr);
 	return (0);
 }

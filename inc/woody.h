@@ -85,15 +85,18 @@ typedef struct s_wdy
     void        *ptr;
 	enum e_cypher cypher;
 	void		*end;
-    char*      key;
+    char*      	key;
     size_t      size;
 	size_t		payloadLen;
 	size_t		payloadIndex;
-	void		*entry_addr;
-	uint64_t	entry;
+	uint64_t	old_entry;
 	uint64_t	text_addr;
-	int			text_offset;
-	int			text_size;
+	uint64_t	text_offset;
+	uint64_t	text_size;
+	uint64_t	sc_addr;
+	uint64_t	sc_offset;
+	uint64_t	sc_size;
+	
 }               t_wdy;
 
 typedef struct		s_wdy_payload
