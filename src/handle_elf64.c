@@ -27,9 +27,6 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
         {
             seg->p_offset += SIZE;
             seg->p_flags |= PF_W;
-            seg->p_vaddr += SIZE;
-
-            seg->p_paddr += SIZE;
         }
         if (hdr->e_entry >= seg->p_vaddr && hdr->e_entry <= seg->p_vaddr + seg->p_filesz)
         {

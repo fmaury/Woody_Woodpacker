@@ -1,9 +1,8 @@
 BITS 64;
 section .text
-global params
-global putwoody
+global xor42
 
-putwoody:
+xor42:
     jmp msg
 
 print:
@@ -17,8 +16,8 @@ print:
     mov dl, 14
     mov al, 1
     syscall
-    lea rbx, [rel txtaddr]
-    mov rcx, txtlen
+    mov rbx, 0xAAAAAAAAAAAAAAAA
+    mov rcx, 0xBBBBBBBBBBBBBBBB
     jmp sectxt
 
 msg:
@@ -26,10 +25,4 @@ msg:
     db '....WOODY....',10,0
 
 sectxt:
-    mov rax, entrypgm
-    jmp 0x0000000000001135
-
-params:
-txtaddr: dq 0xAABBCCDDAABBCCDD
-txtlen: dq 0xFFFFFFFFFFFFFFFF
-entrypgm: dq 0xAABBCCDDAABBCCDD
+    jmp near xor42

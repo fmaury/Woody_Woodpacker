@@ -27,14 +27,14 @@ int         xor42_encrypt(t_wdy *obj)
 
 int         xor42_insert(t_wdy*obj, int offset)
 {
-    uint64_t *args;
+    void        *addr;
+    int32_t     jump_offset;
 
-    args = (uint64_t *)(obj->ptr + offset + obj->payloadLen - 24);
-    ft_memcpy(obj->ptr + offset, (void *)putwoody, obj->payloadLen + 24);
-    args[0] = obj->sc_addr;
-    args[1] = obj->sc_size;
-    args[2] = obj->old_entry;
-
+    addr = obj->ptr + offset + obj->payloadLen;
+    jump_offset = (void*)(obj->old_entry) - (void*)(obj->text_addr + obj->text_size + obj->payloadLen);
+    printf("jump in file %ld jump offset %x   res %ld\n", offset + obj->payloadLen, jump_offset, offset + obj->payloadLen + jump_offset);
+    ft_memcpy(obj->ptr + offset, (void *)xor42, obj->payloadLen);
+    ft_memcpy((void *)addr - 4, &jump_offset, 4);
     // data = g_payloads[obj->payloadIndex].data;
     // ft_memcpy(obj->ptr + offset, data, obj->payloadLen);
     // jump_offset = obj->old_entry - offset;
