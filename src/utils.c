@@ -94,3 +94,27 @@ int		parse_arg(t_wdy *obj, int ac, char **av)
     obj->key = ft_strdup(av[j * 2+ 1]);
     return (0);
 }
+
+int             keygen(t_wdy *obj)
+{
+    int         fd;
+    char        *key;
+    size_t      count = 0;
+    char        c;
+
+    if (obj->key)
+        return (0);
+    if ((fd = open("/dev/random", O_RDONLY)) < 0)
+        return (er(OPEN, "/dev/random"));
+    if (!(key = ft_memalloc(17)))
+        return (er(MALLOC, "key generator"));
+    while (count < 16)
+    {
+        if (read(fd, &c, 1) < 0)
+            return (er(DEFAULT_ERR, "read key generator"));
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c<= 'z') || (c >= '0' && c <= '9'))
+            key[count++] = c;
+    }
+    obj->key = key;
+    return (0);
+}

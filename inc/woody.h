@@ -115,6 +115,7 @@ typedef struct		s_woody_handler
 	int				(*f)(t_wdy *);
 }					t_woody_handler;
 
+int					keygen(t_wdy *obj);
 
 int					parse_arg(t_wdy *obj, int ac, char **av);
 int					load_file(char *filename, t_wdy *obj);

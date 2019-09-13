@@ -57,8 +57,8 @@ int         rot13_encrypt(t_wdy *obj)
 
 int         rc4_encrypt(t_wdy *obj)
 {
-    if (!obj->key)
-        obj->key = ft_strdup("Key");
+    if (keygen(obj) < 0)
+        return (-1);
     unsigned char *input = (unsigned char*)(obj->ptr + obj->text_off);
     unsigned char S[256];
 	unsigned char t;

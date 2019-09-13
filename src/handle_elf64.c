@@ -48,6 +48,8 @@ static int seg_writable(t_wdy *obj, Elf64_Ehdr *hdr)
     Elf64_Phdr *phdr;
     int i = 0;
 
+    if (hdr->e_machine != 0x3e)
+        return (er(DEFAULT_ERR, "wrong architecture"));
     if (!chk_ptr(obj, obj->ptr + hdr->e_phoff, hdr->e_phnum*sizeof(Elf64_Phdr)))
         return (er(TRUNCATED, obj->filename));
     phdr = obj->ptr + hdr->e_phoff;
@@ -73,6 +75,8 @@ static int find_offset(t_wdy *obj)
 
     (void)sec_found;
     hdr = (Elf64_Ehdr*)obj->ptr;
+    if (!chk_ptr(obj, obj->ptr, sizeof(Elf64_Ehdr)))
+        return (er(TRUNCATED, obj->filename));
     if (seg_writable(obj, hdr) < 0)
         return (-1);
     obj->entry = hdr->e_entry;
