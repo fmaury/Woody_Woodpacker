@@ -48,27 +48,27 @@ static int update(t_wdy *obj)
 {
     unsigned int    i = 0;
     bool            found = false;
-    Elf64_Ehdr *hdr;
-    Elf64_Shdr *sec;
+    Elf64_Ehdr      *hdr;
+    Elf64_Shdr      *sec;
 
     hdr = (Elf64_Ehdr*)obj->ptr;
+    if (!chk_ptr(obj, obj->ptr, sizeof(Elf64_Ehdr)))
+        return (er(TRUNCATED, obj->filename));
+    if (hdr->e_machine != 0x3e) // not x86_64 architecture
+        return (er(DEFAULT_ERR, "wrong architecture"));
     if (updseg(obj, hdr) < 0)
         return (-1);
     obj->old_entry = hdr->e_entry;
     if (!chk_ptr(obj, obj->ptr, hdr->e_shoff + sizeof(Elf64_Shdr) * hdr->e_shnum))
         return (er(TRUNCATED, obj->filename));
     sec = obj->ptr + hdr->e_shoff;
-    // if (sec->sh_flags == 0xdeadbeef)
-    //     return (er(ALR_PACKD, obj->filename));
-    // sec->sh_flags = 0xdeadbeef;
+    if (sec->sh_flags == 0xdeadbeef)
+         return (er(ALR_PACKD, obj->filename));
+    sec->sh_flags = 0xdeadbeef;
     while (i < hdr->e_shnum)
     {
-        printf("section %u\n", i);
         if (found)
-        {
             sec->sh_offset += SIZE;
-            sec->sh_addr += SIZE;
-        }
         if (hdr->e_entry >= sec->sh_addr && hdr->e_entry < sec->sh_addr + sec->sh_size)
         {
             obj->sc_addr = sec->sh_addr;
@@ -77,7 +77,6 @@ static int update(t_wdy *obj)
         }
         if (sec->sh_offset + sec->sh_size == obj->text_offset + obj->text_size)
         {
-            printf("found last section of segment text\n");
             sec->sh_size += obj->payloadLen;
             found = true;
         }
@@ -86,7 +85,6 @@ static int update(t_wdy *obj)
     }
     hdr->e_shoff += SIZE;
     hdr->e_entry = obj->text_addr + obj->text_size;
-    printf("old entry: %lu\n", obj->old_entry);
     return (0);
 }
 
@@ -97,16 +95,10 @@ int				handle_elf64(t_wdy *obj)
 
     if (update(obj) < 0)
         return (-1);
-    if (!(tmp = ft_memalloc(obj->size + SIZE)))
+    if ((tmp = mmap(0, obj->size + SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0)) == MAP_FAILED)
         return (er(MALLOC, obj->filename));
     ft_memcpy(tmp, obj->ptr, obj->text_offset + obj->text_size);
-    printf("sg addr %lu offset %lu size %lu\n", obj->text_addr, obj->text_offset, obj->text_size);
-    printf("sc addr %lu offset %lu size %lu\n", obj->sc_addr, obj->sc_offset, obj->sc_size);
-    printf("memmove(%p, %p, %lu)  size: %lu\n", obj->ptr + obj->text_offset + obj->text_size + SIZE, obj->ptr + obj->text_offset + obj->text_size, obj->size - (obj->text_offset + obj->text_size), obj->size);
-    printf("ptr %p end : %p mememove end : %p\n", obj->ptr, obj->ptr + obj->size + SIZE, obj->ptr + obj->text_offset + obj->text_size + SIZE + obj->size - (obj->text_offset + obj->text_size));
     ft_memmove(tmp + obj->text_offset + obj->text_size + SIZE, obj->ptr + obj->text_offset + obj->text_size, obj->size - (obj->text_offset + obj->text_size));
-    puts("memmove ok");
-    printf("offset stub : %lx\n", obj->text_offset + obj->text_size);
     if (munmap(obj->ptr, obj->size) < 0)
 		return (er(MUNMAP, obj->filename));
     obj->ptr = tmp;

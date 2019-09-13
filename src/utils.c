@@ -13,24 +13,25 @@
 #include <woody.h>
 
 t_wdy_payload	g_payloads[4] = {
-    {XOR42, "1", "XOR42", XOR42_DATA, XOR42_DATA_LEN, xor42_encrypt, xor42_insert},
-    {ROT13, "2", "ROT13", ROT13_DATA, ROT13_DATA_LEN, rot13_encrypt, rot13_insert},
-    {RC4, "3", "RC4", RC4_DATA, RC4_DATA_LEN, rc4_encrypt, rc4_insert},
+    {XOR42, "1", "XOR42", (char *)_xor42, XOR42_DATA_LEN, xor42_encrypt, insert},
+    {ROT13, "2", "ROT13", (char *)_rot13, ROT13_DATA_LEN, rot13_encrypt, insert},
+    {RC4, "3", "RC4", (char *)_rc4, RC4_DATA_LEN, rc4_encrypt, rc4_insert},
     {END_CYPHER, 0, 0, 0, 0, 0, 0}
 };
 
 int     is_good_key(char *s)
 {
-    size_t i = 0;
-
-    if (ft_strlen(s) != 3)
+    size_t      ln = ft_strlen(s);
+    char        c;
+    if (ln < 3 || ln > 16)
         return (0);
-    while (i < ft_strlen(s))
+    while (ln--)
     {
-        if (s[i] < 33 || s[i] > 125)
+        c = s[ln];
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c<= 'z') || (c >= '0' && c <= '9')))
             return (0);
-        i++;
     }
+    
     return (1);
 }
 
@@ -100,5 +101,29 @@ int		parse_arg(t_wdy *obj, int ac, char **av)
     if (!is_good_key(av[j * 2+ 1]))
         return (-1);
     obj->key = ft_strdup(av[j * 2+ 1]);
+    return (0);
+}
+
+int             keygen(t_wdy *obj)
+{
+    int         fd;
+    char        *key;
+    size_t      count = 0;
+    char        c;
+
+    if (obj->key)
+        return (0);
+    if ((fd = open("/dev/random", O_RDONLY)) < 0)
+        return (er(OPEN, "/dev/random"));
+    if (!(key = ft_memalloc(17)))
+        return (er(MALLOC, "key generator"));
+    while (count < 16)
+    {
+        if (read(fd, &c, 1) < 0)
+            return (er(DEFAULT_ERR, "read key generator"));
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c<= 'z') || (c >= '0' && c <= '9'))
+            key[count++] = c;
+    }
+    obj->key = key;
     return (0);
 }

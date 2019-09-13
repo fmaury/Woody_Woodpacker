@@ -35,7 +35,9 @@ SRC				= main.c			\
 				  cypher.c			\
 				  err.c
 
-ASM_SRC			= xor42.s
+ASM_SRC			= xor42.s			\
+				  rot13.s			\
+				  rc4.s
 
 OBJ				= $(SRC:.c=.o)
 OBJ				+= $(ASM_SRC:.s=.o)

@@ -53,6 +53,7 @@ int							release_file(t_wdy *obj)
 {
 	if (!obj->ptr)
 		return (0);
-	free(obj->ptr);
+	if (munmap(obj->ptr, obj->size) < 0)
+		return (er(MUNMAP, obj->filename));
 	return (0);
 }

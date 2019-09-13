@@ -19,71 +19,52 @@ int         xor42_encrypt(t_wdy *obj)
 
     while (i < obj->sc_size)
     {
-        text[i] ^= 0;
+        text[i] ^= 42;
         i++;
     }
-    return (1); 
+    return (0); 
 }
 
-int         xor42_insert(t_wdy*obj, int offset)
+int         insert(t_wdy*obj, int offset)
 {
     void        *addr;
     int32_t     jump_offset;
+    int32_t     sec_offset;
 
     addr = obj->ptr + offset + obj->payloadLen;
     jump_offset = (void*)(obj->old_entry) - (void*)(obj->text_addr + obj->text_size + obj->payloadLen);
-    printf("jump in file %ld jump offset %x   res %ld\n", offset + obj->payloadLen, jump_offset, offset + obj->payloadLen + jump_offset);
-    ft_memcpy(obj->ptr + offset, (void *)xor42, obj->payloadLen);
+    sec_offset = (void*)(obj->sc_addr) - (void*)(obj->text_addr + obj->text_size + 0x3e + 4);
+    ft_memcpy(obj->ptr + offset, g_payloads[obj->payloadIndex].data, obj->payloadLen);
     ft_memcpy((void *)addr - 4, &jump_offset, 4);
-    // data = g_payloads[obj->payloadIndex].data;
-    // ft_memcpy(obj->ptr + offset, data, obj->payloadLen);
-    // jump_offset = obj->old_entry - offset;
-    // ft_memcpy(obj->ptr + offset + obj->payloadLen, (void *)&jump_offset, 4);
-    // jump_offset = obj->sc_addr - offset + *((uint32_t*)(obj->ptr + offset + 27));
-    // ft_memcpy(obj->ptr + offset + 27, (void *)&jump_offset, 4);
-    // ft_memcpy(obj->ptr + offset + 32, (void *)&obj->sc_size, 4);
+    ft_memcpy(obj->ptr + offset + 0x33, &obj->sc_size, 8);
+    ft_memcpy(obj->ptr + offset + 0x3e, &sec_offset, 4);
     return (0);
 }
 
 int         rot13_encrypt(t_wdy *obj)
 {
     uint64_t i = 0;
-    unsigned char *encr = (unsigned char*)obj->ptr;
+    unsigned char *text = (unsigned char*)obj->ptr + obj->sc_offset;
 
-    while (i < obj->text_size)
+    while (i < obj->sc_size)
     {
-        encr[obj->old_entry + i] = (encr[obj->old_entry + i] + 13) % 256;
+        text[i] = (text[i] + 13) % 256;
         i++;
     }
-    return (1); 
-}
-
-int         rot13_insert(t_wdy*obj, int offset)
-{
-    uint32_t jump_offset;
-    const char *data;
-
-    data = g_payloads[obj->payloadIndex].data;
-    ft_memcpy(obj->ptr + offset, data, obj->payloadLen);
-    jump_offset = (obj->old_entry) - (offset + obj->payloadLen - 1);
-    ft_memcpy(obj->ptr + offset + obj->payloadLen, (void *)&jump_offset, 4);
-    jump_offset = obj->old_entry - offset + *((uint32_t*)(obj->ptr + offset + 27));
-    ft_memcpy(obj->ptr + offset + 27, (void *)&jump_offset, 4);
-    ft_memcpy(obj->ptr + offset + 32, (void *)&obj->text_size, 4);
-    return (0);
+    return (0); 
 }
 
 int         rc4_encrypt(t_wdy *obj)
 {
-    if (!obj->key)
-        obj->key = ft_strdup("Key");
-    unsigned char *input = (unsigned char*)(obj->ptr + obj->old_entry);
-    unsigned char S[256];
-	unsigned char t;
-	int n;
-	int i = 0;
-	int j = 0;
-	int temp = 0;
+    if (keygen(obj) < 0)
+        return (-1);
+    unsigned char   *input = (unsigned char*)(obj->ptr + obj->sc_offset);
+    unsigned char   S[256];
+	unsigned char   t;
+	int             n;
+	int             i = 0;
+	int             j = 0;
+	int             temp = 0;
 
 	for (int i=0; i < 256; i++) {
 		S[i] = i;
@@ -100,9 +81,7 @@ int         rc4_encrypt(t_wdy *obj)
 	}
 	i = 0;
 	j = 0;
-	n = 0;
-	while(input[n])
-		n++;
+	n = obj->sc_size;
 	for (int k = 0; k < n; k++)
 	{
 		i = (i+1) % 256;
@@ -126,17 +105,9 @@ int         rc4_encrypt(t_wdy *obj)
 
 int         rc4_insert(t_wdy*obj, int offset)
 {
-    uint32_t jump_offset;
-    const char *data;
-
-    data = g_payloads[obj->payloadIndex].data;
-    ft_memcpy(obj->ptr + offset, data, obj->payloadLen);
-    jump_offset = (obj->old_entry) - (offset + obj->payloadLen - 1);
-    ft_memcpy(obj->ptr + offset + obj->payloadLen, (void *)&jump_offset, 4);
-    jump_offset = obj->old_entry - offset + *((uint32_t*)(obj->ptr + offset + 27));
-    ft_memcpy(obj->ptr + offset + 27, (void *)&jump_offset, 4);
-    ft_memcpy(obj->ptr + offset + 32, (void *)&obj->text_size, 4);
-    ft_memcpy(obj->ptr + offset + 74, (void *)obj->key, 3);
+    insert(obj, offset);
+    ft_memcpy(obj->ptr + offset + 0x54, obj->key, ft_strlen(obj->key));
     free(obj->key);
+    obj->key = 0;
     return (0);
 }
