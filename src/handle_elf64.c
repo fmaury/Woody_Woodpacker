@@ -97,7 +97,7 @@ static int find_offset(t_wdy *obj)
         {
             if (sectionHeader->sh_flags == 0xdeadbeef)
                 return (er(ALR_PACKD, obj->filename));
-            // sectionHeader->sh_flags = 0xdeadbeef;
+            sectionHeader->sh_flags = 0xdeadbeef;
             obj->text_off = sectionHeader->sh_offset;
             obj->text_vaddr = sectionHeader->sh_addr;
             obj->text_size = sectionHeader->sh_size;
