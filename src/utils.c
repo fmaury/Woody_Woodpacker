@@ -23,6 +23,7 @@ int     is_good_key(char *s)
 {
     size_t      ln = ft_strlen(s);
     char        c;
+
     if (ln < 3 || ln > 16)
         return (0);
     while (ln--)
@@ -116,14 +117,16 @@ int             keygen(t_wdy *obj)
     if ((fd = open("/dev/random", O_RDONLY)) < 0)
         return (er(OPEN, "/dev/random"));
     if (!(key = ft_memalloc(17)))
-        return (er(MALLOC, "key generator"));
+        return (er(MALLOC, "/dev/random"));
     while (count < 16)
     {
         if (read(fd, &c, 1) < 0)
-            return (er(DEFAULT_ERR, "read key generator"));
+            return (er(DEFAULT_ERR, "/dev/random"));
         if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c<= 'z') || (c >= '0' && c <= '9'))
             key[count++] = c;
     }
+    if (close(fd) == -1)
+    	return (er(CLOSE, "/dev/random"));
     obj->key = key;
     return (0);
 }

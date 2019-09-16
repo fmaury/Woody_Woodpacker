@@ -139,5 +139,4 @@ int					ck(t_wdy *obj, void *ptr, unsigned int off);
 
 extern t_wdy_payload	g_payloads[4];
 
-
 #endif // !WOODY_H

@@ -14,8 +14,8 @@
 
 int         xor42_encrypt(t_wdy *obj)
 {
-    uint64_t i = 0;
-    char *text = (char *)obj->ptr + obj->sc_offset;
+    uint64_t    i = 0;
+    char        *text = (char *)obj->ptr + obj->sc_offset;
 
     while (i < obj->sc_size)
     {
@@ -43,8 +43,8 @@ int         insert(t_wdy*obj, int offset)
 
 int         rot13_encrypt(t_wdy *obj)
 {
-    uint64_t i = 0;
-    unsigned char *text = (unsigned char*)obj->ptr + obj->sc_offset;
+    uint64_t        i = 0;
+    unsigned char   *text = (unsigned char*)obj->ptr + obj->sc_offset;
 
     while (i < obj->sc_size)
     {

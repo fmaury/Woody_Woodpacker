@@ -19,7 +19,7 @@ int main(int ac, char **av)
 	ft_bzero(&obj, sizeof(t_wdy));
 	if (parse_arg(&obj, ac, av))
 	{
-		dprintf(STDERR, "Usage: %s BINARY [-c 1|2|3, -s key]\n\t-1 : XOR42\n\t-2 : ROT13\n\t-3 : RC4\n\n\t- The key must betwenn 3 and 16 alphanumeric chars\n", av[0]);
+		dprintf(STDERR, "Usage: %s BINARY [-c 1|2|3 -s key]\n\t-1 : XOR42\n\t-2 : ROT13\n\t-3 : RC4\n\n\t- The key must betwenn 3 and 16 alphanumeric chars\n", av[0]);
 		return (1);
 	}
 	if (load_file(av[1], &obj) < 0)

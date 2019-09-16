@@ -24,10 +24,7 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
     while (i < hdr->e_phnum)
     {
         if (found)
-        {
             seg->p_offset += SIZE;
-            seg->p_flags |= PF_W;
-        }
         if (hdr->e_entry >= seg->p_vaddr && hdr->e_entry <= seg->p_vaddr + seg->p_filesz)
         {
             obj->text_addr = seg->p_vaddr;
@@ -41,7 +38,7 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
         i++;
         seg++;
     }
-    return (1);
+    return (0);
 }
 
 static int update(t_wdy *obj)
@@ -62,9 +59,9 @@ static int update(t_wdy *obj)
     if (!chk_ptr(obj, obj->ptr, hdr->e_shoff + sizeof(Elf64_Shdr) * hdr->e_shnum))
         return (er(TRUNCATED, obj->filename));
     sec = obj->ptr + hdr->e_shoff;
-    if (sec->sh_flags == 0xdeadbeef)
+    if (sec->sh_flags == 0xDEADBEEF)
          return (er(ALR_PACKD, obj->filename));
-    sec->sh_flags = 0xdeadbeef;
+    sec->sh_flags = 0xDEADBEEF;
     while (i < hdr->e_shnum)
     {
         if (found)
@@ -97,6 +94,8 @@ int				handle_elf64(t_wdy *obj)
         return (-1);
     if ((tmp = mmap(0, obj->size + SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0)) == MAP_FAILED)
         return (er(MALLOC, obj->filename));
+    if (!chk_ptr(obj, obj->ptr, obj->text_offset + obj->text_size))
+        return (er(TRUNCATED, obj->filename));
     ft_memcpy(tmp, obj->ptr, obj->text_offset + obj->text_size);
     ft_memmove(tmp + obj->text_offset + obj->text_size + SIZE, obj->ptr + obj->text_offset + obj->text_size, obj->size - (obj->text_offset + obj->text_size));
     if (munmap(obj->ptr, obj->size) < 0)
@@ -107,7 +106,8 @@ int				handle_elf64(t_wdy *obj)
     if ((fd = open(BIN_NAME, O_CREAT | O_WRONLY, 0777)) == -1)
 		return (er(OPEN_NEW, obj->filename));
     write(fd, obj->ptr, obj->size + SIZE);
-    if (close(fd) == -1){
-    	return (er(CLOSE, obj->filename));}
+    if (close(fd) == -1)
+    	return (er(CLOSE, obj->filename));
+    // ...
 	return (0);
 }

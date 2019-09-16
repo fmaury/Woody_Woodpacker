@@ -80,9 +80,4 @@ fclean: clean
 
 re: fclean all
 
-test:
-	./$(NAME) a.out && ./woody
-	./$(NAME) /bin/ls && ./woody
-
-
 .PHONY: all clean fclean re test
