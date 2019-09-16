@@ -1,38 +1,43 @@
 BITS 64;
 section .text
-global _start
+global _rc4
 
-_start:
+_rc4:
+    push rdi
+    push rsi
+    push rdx
+    push rbx
+    push rcx
     jmp short msg
+
+msg:
+    call print
+    db '....WOODY....',10,0
 
 print:
     xor rdi, rdi
     xor rsi, rsi
     xor rdx, rdx
     xor rax, rax
-    
     mov dil, 1
     pop rsi
     mov dl, 14
     mov al, 1
     syscall
-    lea rdi, [rel $$] ; 59th byte => -57
-    mov rsi, 0x41414141
+    mov rsi, 0xBBBBBBBBBBBBBBBB 
+    lea rdi, [rel _rc4]
     jmp key
+
 getkey:
     pop rdx 
-    call rc4
-    jmp lol
-
-msg:
-    call print
-    db '....WOODY....',10,0
+    call algo
+    jmp end
 
 key:
     call  getkey
     db 'Key', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-rc4:
+algo:
 push   rbp
 mov    rbp,rsp
 sub    rsp,0xc0
@@ -189,8 +194,12 @@ cmp    eax,DWORD  [rbp-0x4]
 jl     l330
 mov    rax,QWORD  [rbp-0x128]
 leave  
-ret    
+ret
 
-lol:
-    jmp ui
-ui:
+end:
+    pop rcx
+    pop rbx
+    pop rdx
+    pop rsi
+    pop rdi
+    jmp near _rc4

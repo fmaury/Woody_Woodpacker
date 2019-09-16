@@ -12,121 +12,102 @@
 
 #include <woody.h>
 
-static void sort_addr(t_wdy *obj, Elf64_Shdr **addr)
+static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
 {
-    int i = 0;
-    Elf64_Shdr *tmp;
+    Elf64_Phdr      *seg;
+    unsigned int    i = 0;
+    bool            found = false;
 
-    while (addr[i + 1])
-    {
-        if (addr[i]->sh_offset > addr[i+1]->sh_offset)
-        {
-            tmp = addr[i];
-            addr[i] = addr[i + 1];
-            addr[i + 1] = tmp;
-            if ( i > 0)
-            i--;
-        }
-        else
-            i++;
-    }
-    i = 0;
-    while (addr[i + 1])
-    {
-        if (addr[i]->sh_offset > 0 && (int)(addr[i+1]->sh_offset - (addr[i]->sh_offset + addr[i]->sh_size)) > 0 && addr[i+1]->sh_offset - (addr[i]->sh_offset + addr[i]->sh_size) > obj->payloadLen)
-        {
-            obj->sec_vaddr = addr[i]->sh_addr + addr[i]->sh_size + 1;
-            obj->sec_off = addr[i]->sh_offset + addr[i]->sh_size + 1;
-            break ;
-        }
-        i++;
-    }
-}
-
-static int seg_writable(t_wdy *obj, Elf64_Ehdr *hdr)
-{
-    Elf64_Phdr *phdr;
-    int i = 0;
-
-    if (hdr->e_machine != 0x3e)
-        return (er(DEFAULT_ERR, "wrong architecture"));
-    if (!chk_ptr(obj, obj->ptr + hdr->e_phoff, hdr->e_phnum*sizeof(Elf64_Phdr)))
+    if (!chk_ptr(obj, obj->ptr + hdr->e_phoff, hdr->e_phnum * sizeof(Elf64_Phdr)))
         return (er(TRUNCATED, obj->filename));
-    phdr = obj->ptr + hdr->e_phoff;
+    seg = obj->ptr + hdr->e_phoff;
     while (i < hdr->e_phnum)
     {
-        phdr->p_flags = PF_R | PF_W | PF_X;
-        phdr++;
+        if (found)
+            seg->p_offset += SIZE;
+        if (hdr->e_entry >= seg->p_vaddr && hdr->e_entry <= seg->p_vaddr + seg->p_filesz)
+        {
+            obj->text_addr = seg->p_vaddr;
+            obj->text_offset = seg->p_offset;
+            obj->text_size = seg->p_filesz;
+            seg->p_memsz += obj->payloadLen;
+            seg->p_filesz += obj->payloadLen;
+            seg->p_flags |= PF_W;
+            found = true;
+        }
         i++;
+        seg++;
     }
-    return (1);
+    return (0);
 }
 
-static int find_offset(t_wdy *obj)
+static int update(t_wdy *obj)
 {
-    int i = 0;
-    int sec_found = 0;
-    Elf64_Ehdr *hdr;
-    Elf64_Shdr *sectionHeader;
-    Elf64_Shdr *tableNameSection;
-    char *sectionName;
-    Elf64_Shdr *addr[40]= {NULL};
+    unsigned int    i = 0;
+    bool            found = false;
+    Elf64_Ehdr      *hdr;
+    Elf64_Shdr      *sec;
 
-
-    (void)sec_found;
     hdr = (Elf64_Ehdr*)obj->ptr;
     if (!chk_ptr(obj, obj->ptr, sizeof(Elf64_Ehdr)))
         return (er(TRUNCATED, obj->filename));
-    if (seg_writable(obj, hdr) < 0)
+    if (hdr->e_machine != 0x3e) // not x86_64 architecture
+        return (er(DEFAULT_ERR, "wrong architecture"));
+    if (updseg(obj, hdr) < 0)
         return (-1);
-    obj->entry = hdr->e_entry;
-    obj->entry_addr = &hdr->e_entry;
-    if (!chk_ptr(obj, obj->ptr, hdr->e_shoff))
+    obj->old_entry = hdr->e_entry;
+    if (!chk_ptr(obj, obj->ptr, hdr->e_shoff + sizeof(Elf64_Shdr) * hdr->e_shnum))
         return (er(TRUNCATED, obj->filename));
-    sectionHeader = obj->ptr + hdr->e_shoff;
-    if (!chk_ptr(obj, sectionHeader, hdr->e_shstrndx))
-        return (er(TRUNCATED, obj->filename));
-    tableNameSection = sectionHeader + hdr->e_shstrndx;
+    sec = obj->ptr + hdr->e_shoff;
+    if (sec->sh_flags == 0xDEADBEEF)
+         return (er(ALR_PACKD, obj->filename));
+    sec->sh_flags = 0xDEADBEEF;
     while (i < hdr->e_shnum)
     {
-        if (!chk_ptr(obj, obj->ptr, tableNameSection->sh_offset + sectionHeader->sh_name) ||
-        !chk_ptr(obj, sectionHeader, sizeof(*sectionHeader)))
-	        return (er(TRUNCATED, obj->filename));
-        sectionName = (char*)(obj->ptr + tableNameSection->sh_offset + sectionHeader->sh_name);
-        if (!ft_strcmp(sectionName, ".text"))
+        if (found)
+            sec->sh_offset += SIZE;
+        if (hdr->e_entry >= sec->sh_addr && hdr->e_entry < sec->sh_addr + sec->sh_size)
         {
-            if (sectionHeader->sh_flags == 0xdeadbeef)
-                return (er(ALR_PACKD, obj->filename));
-            sectionHeader->sh_flags = 0xdeadbeef;
-            obj->text_off = sectionHeader->sh_offset;
-            obj->text_vaddr = sectionHeader->sh_addr;
-            obj->text_size = sectionHeader->sh_size;
+            obj->sc_addr = sec->sh_addr;
+            obj->sc_offset = sec->sh_offset;
+            obj->sc_size = sec->sh_size;
         }
-        addr[i] = sectionHeader;
-        sectionHeader++;
+        if (sec->sh_offset + sec->sh_size == obj->text_offset + obj->text_size)
+        {
+            sec->sh_size += obj->payloadLen;
+            found = true;
+        }
+        sec++;
         i++;
     }
-    addr[i] = NULL;
-    if (!obj->sec_off)
-    sort_addr(obj, addr);
-
-    if (obj->sec_off && obj->text_off)
-        return 1;
-    return er(NOSPACE, obj->filename);
+    hdr->e_shoff += SIZE;
+    hdr->e_entry = obj->text_addr + obj->text_size;
+    return (0);
 }
 
 int				handle_elf64(t_wdy *obj)
 {
 	int				fd;
+    void            *tmp;
 
-	if (find_offset(obj) == -1)
-		return (-1);
+    if (update(obj) < 0)
+        return (-1);
+    if ((tmp = mmap(0, obj->size + SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0)) == MAP_FAILED)
+        return (er(MALLOC, obj->filename));
+    if (!chk_ptr(obj, obj->ptr, obj->text_offset + obj->text_size))
+        return (er(TRUNCATED, obj->filename));
+    ft_memcpy(tmp, obj->ptr, obj->text_offset + obj->text_size);
+    ft_memmove(tmp + obj->text_offset + obj->text_size + SIZE, obj->ptr + obj->text_offset + obj->text_size, obj->size - (obj->text_offset + obj->text_size));
+    if (munmap(obj->ptr, obj->size) < 0)
+		return (er(MUNMAP, obj->filename));
+    obj->ptr = tmp;
     g_payloads[obj->payloadIndex].fencrypt(obj);
-	g_payloads[obj->payloadIndex].finsert(obj);
+	g_payloads[obj->payloadIndex].finsert(obj, obj->text_offset + obj->text_size);
     if ((fd = open(BIN_NAME, O_CREAT | O_WRONLY, 0777)) == -1)
 		return (er(OPEN_NEW, obj->filename));
-    write(fd, obj->ptr, obj->size);
-    if (close(fd) == -1){
-    	return (er(CLOSE, obj->filename));}
+    write(fd, obj->ptr, obj->size + SIZE);
+    if (close(fd) == -1)
+    	return (er(CLOSE, obj->filename));
+    // ...
 	return (0);
 }

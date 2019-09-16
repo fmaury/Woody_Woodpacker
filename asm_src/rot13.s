@@ -1,26 +1,32 @@
 BITS 64;
 section .text
-global _start
+global _rot13
 
-_start:
+_rot13:
+    push rdi
+    push rsi
+    push rdx
+    push rbx
+    push rcx
     jmp short msg
+
+msg:
+    call print
+    db '....WOODY....',10,0
 
 print:
     xor rdi, rdi
     xor rsi, rsi
     xor rdx, rdx
     xor rax, rax
-    
     mov dil, 1
     pop rsi
     mov dl, 14
     mov al, 1
     syscall
-    lea rbx, [rel $$] ; 59th byte => -57
-    mov rcx, 0x41414141
-
-rot:
-    ;call msug
+    mov rcx, 0xBBBBBBBBBBBBBBBB 
+    lea rbx, [rel _rot13]
+loop:
     xor rax, rax
     mov al, byte [rbx]
     sub al, 13
@@ -28,13 +34,10 @@ rot:
     inc rbx
     dec rcx
     cmp rcx, 0
-    jne rot
-    jmp lol
-
-msg:
-    call print
-    db '....WOODY....',10,0
-
-lol:
-    jmp ui
-ui:
+    jne loop
+    pop rcx
+    pop rbx
+    pop rdx
+    pop rsi
+    pop rdi
+    jmp near _rot13

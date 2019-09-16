@@ -12,25 +12,6 @@
 
 #include <woody.h>
 
-int				string_oef(char *str, t_wdy *file)
-{
-	size_t	i;
-
-	i = 0;
-	if (!chk_ptr(file, (void*)(str), sizeof(char)))
-		return (0);
-	while (str[i])
-	{
-		i++;
-		if (!chk_ptr(file, (void*)(str + i), sizeof(char)))
-		{
-			str[i - 1] = '\0';
-			return (1);
-		}
-	}
-	return (1);
-}
-
 static int		bfr_file(void *bgn_file, void *bgn_ptr)
 {
 	if (bgn_file > bgn_ptr)

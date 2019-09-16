@@ -22,6 +22,7 @@ LIB				= ./libft/libft.a
 LIB_INC			= ./libft/includes
 
 SRC_DIR			= ./src
+ASM_SRC_DIR		= ./asm_src
 OBJ_DIR			= ./obj
 
 SRC				= main.c			\
@@ -33,8 +34,13 @@ SRC				= main.c			\
 				  chk_ptr.c 		\
 				  cypher.c			\
 				  err.c
-					
+
+ASM_SRC			= xor42.s			\
+				  rot13.s			\
+				  rc4.s
+
 OBJ				= $(SRC:.c=.o)
+OBJ				+= $(ASM_SRC:.s=.o)
 
 SRCS			= $(addprefix $(SRC_DIR)/, $(SRC))
 OBJS			= $(addprefix $(OBJ_DIR)/, $(OBJ))
@@ -51,6 +57,9 @@ $(NAME): $(LIB) $(OBJS) $(INC)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(INC)/woody.h
 	@mkdir -p $(OBJ_DIR)
 	$(COMPILER) $(CC_FLAGS) -I$(INC) -I$(LIB_INC) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(ASM_SRC_DIR)/%.s $(INC)/woody.h
+	nasm -f elf64 $< -o $@
 
 ifneq ($(shell make -q -C libft;echo $$?), 0)
 .PHONY:	$(LIB)
@@ -70,10 +79,5 @@ fclean: clean
 	rm -rf woody
 
 re: fclean all
-
-test:
-	./$(NAME) a.out && ./woody
-	./$(NAME) /bin/ls && ./woody
-
 
 .PHONY: all clean fclean re test
