@@ -19,9 +19,8 @@ static t_woody_handler	g_woody_hdlrs[] = {
 
 static int				magic_matched(t_wdy *obj, size_t ih, unsigned char *ptr)
 {
-	size_t			i;
+	size_t			i = 0;
 
-	i = 0;
 	if (ck(obj, ptr, g_woody_hdlrs[ih].nbytes * 5) < 0)
 		return (-1);
 	while (i < g_woody_hdlrs[ih].nbytes)

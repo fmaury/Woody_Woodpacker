@@ -92,7 +92,7 @@ int         rc4_encrypt(t_wdy *obj)
 		temp = (S[i] + S[j]) % 256;
 		input[k] ^= S[temp];
 	}
-    ft_putstr("key: ");
+    printf("key: ");
     i = 0;
     while (i < 256)
     {
@@ -107,6 +107,7 @@ int         rc4_insert(t_wdy*obj, int offset)
 {
     insert(obj, offset);
     ft_memcpy(obj->ptr + offset + 0x54, obj->key, ft_strlen(obj->key));
+
     free(obj->key);
     obj->key = 0;
     return (0);
