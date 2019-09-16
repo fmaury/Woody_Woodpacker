@@ -84,7 +84,7 @@ int         rc4_encrypt(t_wdy *obj)
 	n = obj->sc_size;
 	for (int k = 0; k < n; k++)
 	{
-		i = (i+1) % 256;
+		i = (i + 1) % 256;
 		j = (j + S[i]) % 256;
 		t = S[i];
 		S[i] = S[j];
