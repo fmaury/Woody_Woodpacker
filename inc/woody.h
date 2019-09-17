@@ -91,6 +91,10 @@ typedef struct s_wdy
 	uint64_t	sc_addr;
 	uint64_t	sc_offset;
 	uint64_t	sc_size;
+	uint64_t	new_offset;
+	uint64_t	new_addr;
+	uint64_t	new_size;
+	void		*txt_seghdr;
 	
 }               t_wdy;
 
@@ -116,6 +120,7 @@ typedef struct		s_woody_handler
 void				_xor42(void);
 void				_rot13(void);
 void				_rc4(void);
+void				funcrc4(unsigned char*input, size_t len, char *key);
 void				_nocypher(void);
 
 int			        keygen(t_wdy *obj);

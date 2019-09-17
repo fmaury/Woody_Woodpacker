@@ -1,6 +1,7 @@
 BITS 64;
 section .text
 global _rc4
+global funcrc4
 
 _rc4:
     push rdi
@@ -30,14 +31,14 @@ print:
 
 getkey:
     pop rdx 
-    call algo
+    call funcrc4
     jmp end
 
 key:
     call  getkey
     db 'Key', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
-algo:
+funcrc4:
 push   rbp
 mov    rbp,rsp
 sub    rsp,0xc0

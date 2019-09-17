@@ -1,8 +1,8 @@
 BITS 64;
 section .text
-global rc4
+global funcrc4
 
-rc4:
+funcrc4:
     push   rbp
     mov    rbp,rsp
     sub    rsp,0x138
