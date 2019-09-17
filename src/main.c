@@ -23,8 +23,12 @@ int main(int ac, char **av)
 		return (1);
 	}
 	if (load_file(av[1], &obj) < 0)
+	{
+		free(obj.key);
 		return (1);
+	}
 	dispatcher(&obj);
 	release_file(&obj);
+	free(obj.key);
 	return (0);
 }

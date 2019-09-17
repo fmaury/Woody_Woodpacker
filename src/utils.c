@@ -12,10 +12,11 @@
 
 #include <woody.h>
 
-t_wdy_payload	g_payloads[4] = {
+t_wdy_payload	g_payloads[] = {
     {XOR42, "1", "XOR42", (char *)_xor42, XOR42_DATA_LEN, xor42_encrypt, insert},
     {ROT13, "2", "ROT13", (char *)_rot13, ROT13_DATA_LEN, rot13_encrypt, insert},
     {RC4, "3", "RC4", (char *)_rc4, RC4_DATA_LEN, rc4_encrypt, rc4_insert},
+    {NOCYPHER, "4", "NONE", (char *)_nocypher, NOCYPHER_DATA_LEN, nocypher_encrypt, insert},
     {END_CYPHER, 0, 0, 0, 0, 0, 0}
 };
 

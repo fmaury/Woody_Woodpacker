@@ -37,7 +37,8 @@ SRC				= main.c			\
 
 ASM_SRC			= xor42.s			\
 				  rot13.s			\
-				  rc4.s
+				  rc4.s				\
+				  nocypher.s
 
 OBJ				= $(SRC:.c=.o)
 OBJ				+= $(ASM_SRC:.s=.o)

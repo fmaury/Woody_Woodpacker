@@ -23,8 +23,13 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
     seg = obj->ptr + hdr->e_phoff;
     while (i < hdr->e_phnum)
     {
+        printf("%lx %lx\n", seg->p_vaddr, seg->p_vaddr + seg->p_memsz);
         if (found)
+        {
             seg->p_offset += SIZE;
+            // seg->p_vaddr += SIZE;
+            // seg->p_paddr += SIZE;
+        }
         if (hdr->e_entry >= seg->p_vaddr && hdr->e_entry <= seg->p_vaddr + seg->p_filesz)
         {
             obj->text_addr = seg->p_vaddr;
@@ -65,7 +70,10 @@ static int update(t_wdy *obj)
     while (i < hdr->e_shnum)
     {
         if (found)
+        {
             sec->sh_offset += SIZE;
+            // sec->sh_addr += SIZE;
+        }
         if (hdr->e_entry >= sec->sh_addr && hdr->e_entry < sec->sh_addr + sec->sh_size)
         {
             obj->sc_addr = sec->sh_addr;
@@ -82,6 +90,7 @@ static int update(t_wdy *obj)
     }
     hdr->e_shoff += SIZE;
     hdr->e_entry = obj->text_addr + obj->text_size;
+    printf("entrysize %hd\n", hdr->e_phentsize);
     return (0);
 }
 

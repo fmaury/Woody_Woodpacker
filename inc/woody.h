@@ -31,6 +31,7 @@
 #define XOR42_DATA_LEN 91
 #define ROT13_DATA_LEN 97
 #define RC4_DATA_LEN 680
+#define NOCYPHER_DATA_LEN 76
 
 enum                e_filetype
 {
@@ -61,6 +62,7 @@ enum				e_cypher
 	XOR42,
 	ROT13,
 	RC4,
+	NOCYPHER,
 	END_CYPHER
 };
 
@@ -114,6 +116,7 @@ typedef struct		s_woody_handler
 void				_xor42(void);
 void				_rot13(void);
 void				_rc4(void);
+void				_nocypher(void);
 
 int			        keygen(t_wdy *obj);
 
@@ -123,6 +126,7 @@ int					release_file(t_wdy *obj);
 int 				insert_pack(t_wdy *obj);
 int					chk_ptr(t_wdy *file, void *begin, size_t size);
 
+int					nocypher_encrypt(t_wdy *obj);
 int					insert(t_wdy*obj, int offset);
 int					xor42_encrypt(t_wdy *obj);
 int					rot13_encrypt(t_wdy *obj);
@@ -137,6 +141,6 @@ int					er(enum e_errtype type, char *filename);
 int					jmp(t_wdy *obj, void *ptr, unsigned int off, void *ret);
 int					ck(t_wdy *obj, void *ptr, unsigned int off);
 
-extern t_wdy_payload	g_payloads[4];
+extern t_wdy_payload	g_payloads[5];
 
 #endif // !WOODY_H

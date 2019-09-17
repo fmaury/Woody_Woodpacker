@@ -25,6 +25,12 @@ int         xor42_encrypt(t_wdy *obj)
     return (0); 
 }
 
+int         nocypher_encrypt(t_wdy *obj)
+{
+    (void)obj;
+    return (0); 
+}
+
 int         insert(t_wdy*obj, int offset)
 {
     void        *addr;
@@ -107,8 +113,5 @@ int         rc4_insert(t_wdy*obj, int offset)
 {
     insert(obj, offset);
     ft_memcpy(obj->ptr + offset + 0x54, obj->key, ft_strlen(obj->key));
-
-    free(obj->key);
-    obj->key = 0;
     return (0);
 }
