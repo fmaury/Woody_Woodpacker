@@ -1,8 +1,0 @@
-#!/usr/bin/bash
-
-./a.out 10
-./a.out 100
-./a.out 255
-./a.out 523
-./a.out 1050
-./a.out 10500a
