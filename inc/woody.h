@@ -91,6 +91,7 @@ typedef struct s_wdy
 	uint64_t	sc_addr;
 	uint64_t	sc_offset;
 	uint64_t	sc_size;
+	uint64_t	sc_index;
 	uint64_t	new_offset;
 	uint64_t	new_addr;
 	uint64_t	new_size;

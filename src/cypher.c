@@ -38,8 +38,8 @@ int         insert(t_wdy*obj, int offset)
     int32_t     sec_offset;
 
     addr = obj->ptr + offset + obj->payloadLen;
-    jump_offset = (void*)(obj->old_entry) - (void*)(obj->ptr + SIZE + sizeof(Elf64_Phdr) + sizeof(Elf64_Shdr) + obj->payloadLen);
-    sec_offset = (void*)(obj->sc_addr) - (void*)(obj->ptr + SIZE + sizeof(Elf64_Phdr) + sizeof(Elf64_Shdr) + 0x3e + 4);
+    jump_offset = (void*)(obj->old_entry) - (void*)(obj->ptr + obj->size + sizeof(Elf64_Phdr) + sizeof(Elf64_Shdr) + obj->payloadLen);
+    sec_offset = (void*)(obj->sc_addr) - (void*)(obj->ptr + obj->size + sizeof(Elf64_Phdr) + sizeof(Elf64_Shdr) + 0x3e + 4);
     ft_memcpy(obj->ptr + offset, g_payloads[obj->payloadIndex].data, obj->payloadLen);
     ft_memcpy((void *)addr - 4, &jump_offset, 4);
     ft_memcpy(obj->ptr + offset + 0x33, &obj->sc_size, 8);

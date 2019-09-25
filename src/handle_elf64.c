@@ -24,11 +24,12 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
     while (i < hdr->e_phnum)
     {
         printf("%lx - %lx = %lx\n", seg->p_vaddr, seg->p_offset, seg->p_vaddr - seg->p_offset);
+        // printf("p align %ld  calc %ld\n", seg->p_align, seg->p_offset % seg->p_align);
+        
         if (found)
         {
             // seg->p_offset += sizeof(Elf64_Phdr);
             // seg->p_vaddr += obj->payloadLen;
-            // seg->p_paddr += obj->payloadLen;
         }
         if (hdr->e_entry >= seg->p_vaddr && hdr->e_entry <= seg->p_vaddr + seg->p_filesz)
         {
@@ -42,6 +43,7 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
             found = true;
         }
         seg->p_offset += sizeof(Elf64_Phdr);
+        // seg->p_vaddr += sizeof(Elf64_Phdr);
         i++;
         seg++;
     }
@@ -66,9 +68,9 @@ static int update(t_wdy *obj)
     if (!chk_ptr(obj, obj->ptr, hdr->e_shoff + sizeof(Elf64_Shdr) * hdr->e_shnum))
         return (er(TRUNCATED, obj->filename));
     sec = obj->ptr + hdr->e_shoff;
-    if (sec->sh_flags == 0xDEADBEEF)
-         return (er(ALR_PACKD, obj->filename));
-    sec->sh_flags = 0xDEADBEEF;
+    // if (sec->sh_flags == 0xDEADBEEF)
+    //      return (er(ALR_PACKD, obj->filename));
+    // sec->sh_flags = 0xDEADBEEF;
     while (i < hdr->e_shnum)
     {
         // if (sec->sh_addr >= obj->text_addr + obj->text_size)
@@ -82,6 +84,7 @@ static int update(t_wdy *obj)
             obj->sc_addr = sec->sh_addr;
             obj->sc_offset = sec->sh_offset;
             obj->sc_size = sec->sh_size;
+            obj->sc_index = i;
         }
         if (sec->sh_offset + sec->sh_size == obj->text_offset + obj->text_size)
         {
@@ -89,11 +92,12 @@ static int update(t_wdy *obj)
             found = true;
         }
         sec->sh_offset += sizeof(Elf64_Phdr);
+        // sec->sh_addr += sizeof(Elf64_Phdr);
         sec++;
         i++;
     }
-    hdr->e_shoff += sizeof(Elf64_Phdr);
     printf("entrysize %hd\n", hdr->e_phentsize);
+    printf("shstrndx %hd\n", hdr->e_shstrndx);
     return (0);
 }
 
@@ -115,33 +119,37 @@ int				handle_elf64(t_wdy *obj)
     // copy header 
     ft_memcpy(tmp, obj->ptr, sizeof(Elf64_Ehdr) + hdr->e_phnum * sizeof(Elf64_Phdr));
     newhdr = (Elf64_Ehdr*)tmp;
+    newhdr->e_shoff += sizeof(Elf64_Phdr);
     newhdr->e_phnum++;
     newhdr->e_shnum++;
     // copy new seg
-    ft_memcpy(tmp + sizeof(Elf64_Ehdr) + hdr->e_phnum * sizeof(Elf64_Phdr), obj->txt_seghdr, sizeof(Elf64_Phdr));
     newseg = tmp + sizeof(Elf64_Ehdr) + hdr->e_phnum * sizeof(Elf64_Phdr);
-    newseg->p_offset = obj->size + sizeof(Elf64_Phdr);
+    ft_memcpy(newseg, obj->txt_seghdr, sizeof(Elf64_Phdr));
+    newseg->p_offset = obj->size + sizeof(Elf64_Phdr) + sizeof(Elf64_Shdr);
     newseg->p_vaddr = newseg->p_offset + (obj->text_addr - obj->text_offset);
     newseg->p_filesz = SIZE;
     newseg->p_memsz = SIZE;
+    newseg->p_type = 0;
     // copy all segments /sections data
-    ft_memcpy(newseg + 1, obj->txt_seghdr + sizeof(Elf64_Ehdr), obj->size - (obj->txt_seghdr + sizeof(Elf64_Ehdr) - obj->ptr));
+    ft_memcpy(newseg + 1, obj->ptr + sizeof(Elf64_Ehdr) + hdr->e_phnum * sizeof(Elf64_Phdr), obj->size - sizeof(Elf64_Ehdr) - hdr->e_phnum * sizeof(Elf64_Phdr));
     //add new sec
-    newsec = (Elf64_Shdr *)(tmp + SIZE + sizeof(Elf64_Phdr));
-    ft_memcpy(newsec, obj->ptr + obj->sc_offset, sizeof(Elf64_Shdr));
+    newsec = (Elf64_Shdr *)(tmp + obj->size + sizeof(Elf64_Phdr));
+    ft_memcpy(newsec, obj->ptr + hdr->e_shoff + sizeof(Elf64_Shdr) * obj->sc_index, sizeof(Elf64_Shdr));
     newsec->sh_addr = newseg->p_vaddr;
     newsec->sh_offset = newseg->p_offset;
     newsec->sh_size = obj->payloadLen;
-    newsec->sh_link = 0;
+    newsec->sh_name++;
     if (munmap(obj->ptr, obj->size) < 0)
 		return (er(MUNMAP, obj->filename));
     obj->ptr = tmp;
-    newhdr->e_entry = newsec->sh_addr;
+    // newhdr->e_entry = newsec->sh_addr;
+    // newhdr->e_entry += sizeof(Elf64_Phdr);
+    printf("entry : %lx\n", newhdr->e_entry);
     g_payloads[obj->payloadIndex].fencrypt(obj);
 	g_payloads[obj->payloadIndex].finsert(obj, newsec->sh_offset);
     if ((fd = open(BIN_NAME, O_CREAT | O_WRONLY, 0777)) == -1)
 		return (er(OPEN_NEW, obj->filename));
-    write(fd, obj->ptr, obj->size + SIZE + sizeof(Elf64_Phdr));
+    write(fd, obj->ptr, obj->size + SIZE + sizeof(Elf64_Phdr) + sizeof(Elf64_Shdr));
     if (close(fd) == -1)
     	return (er(CLOSE, obj->filename));
     // ...
