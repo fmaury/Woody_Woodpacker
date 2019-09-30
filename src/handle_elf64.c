@@ -40,6 +40,8 @@ static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
     pload = count_ptload(hdr, seg);
     while (i < hdr->e_phnum)
     {
+        if (!chk_ptr(obj, obj->ptr, seg->p_offset))
+            return (er(TRUNCATED, obj->filename));
         if (hdr->e_entry >= seg->p_vaddr && hdr->e_entry <= seg->p_vaddr + seg->p_filesz)
         {
             obj->txt_seghdr = seg;
@@ -90,6 +92,8 @@ static int update(t_wdy *obj)
     sec->sh_flags = 0xDEADBEEF;
     while (i < hdr->e_shnum)
     {
+        if (!chk_ptr(obj, obj->ptr, sec->sh_offset))
+            return (er(TRUNCATED, obj->filename));
         if (found)
             sec->sh_offset += SIZE;
         if (hdr->e_entry >= sec->sh_addr && hdr->e_entry < sec->sh_addr + sec->sh_size)
@@ -101,7 +105,6 @@ static int update(t_wdy *obj)
         }
         if (sec->sh_offset + sec->sh_size == obj->sg_offset + obj->sg_size)
         {
-            // sec->sh_size += obj->payloadLen;
             obj->lastsc_index = i + 1;
             found = true;
         }
@@ -123,7 +126,7 @@ int				handle_elf64(t_wdy *obj)
         return (-1);
     if ((tmp = mmap(0, obj->size + SIZE + sizeof(Elf64_Shdr), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0)) == MAP_FAILED)
         return (er(MMAP, obj->filename));
-    if (!chk_ptr(obj, obj->ptr, obj->text_offset + obj->text_size))
+    if (!chk_ptr(obj, obj->ptr, obj->sg_offset + obj->sg_size))
         return (er(TRUNCATED, obj->filename));
     // copy header 
     ft_memcpy(tmp, obj->ptr, obj->sg_offset + obj->sg_size);
@@ -132,7 +135,7 @@ int				handle_elf64(t_wdy *obj)
     newhdr->e_shoff += SIZE;
     newhdr->e_shnum++;
     newhdr->e_shstrndx++;
-    // copy all segments /sections data /first untouc section header
+    // copy all segments /sections data /first until section header
     ft_memcpy(tmp + obj->sg_offset + obj->sg_size + SIZE, obj->ptr + obj->sg_offset + obj->sg_size, hdr->e_shoff + obj->lastsc_index * sizeof(Elf64_Shdr) - (obj->sg_offset + obj->sg_size));
     //add new sec
     newsec = (Elf64_Shdr *)(tmp + newhdr->e_shoff + obj->lastsc_index * sizeof(Elf64_Shdr));
@@ -147,13 +150,12 @@ int				handle_elf64(t_wdy *obj)
 		return (er(MUNMAP, obj->filename));
     obj->ptr = tmp;
     newhdr->e_entry = newsec->sh_addr;
-    // newhdr->e_entry += sizeof(Elf64_Phdr);
     g_payloads[obj->payloadIndex].fencrypt(obj);
 	g_payloads[obj->payloadIndex].finsert(obj, newsec->sh_offset);
     if ((fd = open(BIN_NAME, O_CREAT | O_WRONLY, 0777)) == -1)
 		return (er(OPEN_NEW, obj->filename));
     write(fd, obj->ptr, obj->size + SIZE + sizeof(Elf64_Phdr) + sizeof(Elf64_Shdr));
-    if (close(fd) == -1)
+    if (close(fd) == -1) 
     	return (er(CLOSE, obj->filename));
     // ...
 	return (0);
