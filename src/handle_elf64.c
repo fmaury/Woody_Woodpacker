@@ -24,7 +24,7 @@ static size_t       count_ptload(Elf64_Ehdr *hdr, Elf64_Phdr * seg)
         seg++;
         i++;
     }
-    return (count - 1);
+    return (!count ? count : count - 1);
 }
 
 static int updseg(t_wdy *obj, Elf64_Ehdr *hdr)
